@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel | Provider Portal</title>
+  <style>
+    @font-face { font-family:'Sarabun'; font-weight:300; font-style:normal; src:url('/fonts/Sarabun-300.ttf') format('truetype'); }
+    @font-face { font-family:'Sarabun'; font-weight:400; font-style:normal; src:url('/fonts/Sarabun-400.ttf') format('truetype'); }
+    @font-face { font-family:'Sarabun'; font-weight:500; font-style:normal; src:url('/fonts/Sarabun-500.ttf') format('truetype'); }
+    @font-face { font-family:'Sarabun'; font-weight:600; font-style:normal; src:url('/fonts/Sarabun-600.ttf') format('truetype'); }
+    @font-face { font-family:'Sarabun'; font-weight:700; font-style:normal; src:url('/fonts/Sarabun-700.ttf') format('truetype'); }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:       #0f172a;
+      --surface:  #1e293b;
+      --border:   #334155;
+      --text:     #e2e8f0;
+      --muted:    #64748b;
+      --accent:   #d97706;
+      --danger:   #ef4444;
+      --success:  #22c55e;
+    }
+    body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 220px; flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0;
+    }
+    .sidebar-brand {
+      padding: 1.25rem 1rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: .625rem;
+    }
+    .sidebar-brand span { font-weight: 700; font-size: .95rem; }
+    .sidebar-brand small { color: var(--muted); font-size: .7rem; display: block; }
+    .sidebar-nav { flex: 1; padding: .75rem .5rem; }
+    .nav-item {
+      display: flex; align-items: center; gap: .625rem;
+      padding: .6rem .75rem;
+      border-radius: .5rem;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: .875rem;
+      transition: all .15s;
+      border: none; background: none; width: 100%; text-align: left;
+    }
+    .nav-item:hover  { background: rgba(255,255,255,.05); color: var(--text); }
+    .nav-item.active { background: rgba(217,119,6,.15); color: var(--accent); }
+    .sidebar-footer {
+      padding: .75rem 1rem;
+      border-top: 1px solid var(--border);
+      font-size: .8rem; color: var(--muted);
+    }
+    .btn-logout {
+      display: block; width: 100%; margin-top: .5rem;
+      background: none; border: 1px solid var(--border);
+      color: var(--muted); padding: .4rem; border-radius: .5rem;
+      cursor: pointer; font-family: inherit; font-size: .8rem;
+      transition: all .15s;
+    }
+    .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* Main */
+    .main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; }
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .topbar h2 { font-size: 1rem; font-weight: 600; }
+    .badge {
+      font-size: .7rem; padding: .2rem .5rem; border-radius: 999px;
+      background: rgba(217,119,6,.15); color: var(--accent); border: 1px solid rgba(217,119,6,.3);
+    }
+    .content { padding: 1.5rem; flex: 1; }
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: .875rem;
+      overflow: hidden;
+    }
+    .card-header {
+      padding: .875rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .card-header h3 { font-size: .9rem; font-weight: 600; }
+
+    /* Table */
+    table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    th {
+      background: rgba(0,0,0,.2);
+      padding: .625rem 1rem;
+      text-align: left;
+      font-size: .75rem; text-transform: uppercase; letter-spacing: .05em;
+      color: var(--muted);
+    }
+    td { padding: .625rem 1rem; border-top: 1px solid var(--border); vertical-align: middle; }
+    tr:hover td { background: rgba(255,255,255,.025); }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; gap: .35rem;
+      padding: .4rem .875rem;
+      border-radius: .5rem;
+      font-family: inherit;
+      font-size: .8rem; font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all .15s;
+    }
+    .btn-primary  { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn-primary:hover  { opacity: .85; }
+    .btn-danger   { background: rgba(239,68,68,.1); color: var(--danger); border-color: rgba(239,68,68,.3); }
+    .btn-danger:hover   { background: rgba(239,68,68,.2); }
+    .btn-ghost    { background: none; color: var(--muted); border-color: var(--border); }
+    .btn-ghost:hover    { color: var(--text); }
+    .btn-sm { padding: .25rem .6rem; font-size: .75rem; }
+    .btn-success  { background: rgba(34,197,94,.1); color: var(--success); border-color: rgba(34,197,94,.3); }
+    .btn-success:hover  { background: rgba(34,197,94,.2); }
+
+    /* Status pills */
+    .pill {
+      display: inline-block;
+      padding: .15rem .5rem;
+      border-radius: 999px;
+      font-size: .7rem; font-weight: 600;
+    }
+    .pill-green  { background: rgba(34,197,94,.1);  color: var(--success); border: 1px solid rgba(34,197,94,.3); }
+    .pill-red    { background: rgba(239,68,68,.1);  color: var(--danger);  border: 1px solid rgba(239,68,68,.3); }
+    .pill-amber  { background: rgba(217,119,6,.1);  color: var(--accent);  border: 1px solid rgba(217,119,6,.3); }
+    .pill-slate  { background: rgba(100,116,139,.1); color: var(--muted);  border: 1px solid rgba(100,116,139,.3); }
+
+    /* Form */
+    .form-row { display: grid; gap: 1rem; }
+    .form-group { display: flex; flex-direction: column; gap: .35rem; }
+    .form-group label { font-size: .75rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+    .form-group input, .form-group select {
+      background: rgba(0,0,0,.3);
+      border: 1px solid var(--border);
+      border-radius: .5rem;
+      padding: .55rem .75rem;
+      color: var(--text);
+      font-family: inherit;
+      font-size: .875rem;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+    .form-group select option { background: var(--surface); }
+
+    /* Modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,.6); backdrop-filter: blur(4px);
+      align-items: center; justify-content: center; padding: 1rem;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      width: 100%; max-width: 480px;
+      box-shadow: 0 25px 50px rgba(0,0,0,.5);
+    }
+    .modal h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; }
+    .modal-actions { display: flex; gap: .75rem; margin-top: 1.25rem; justify-content: flex-end; }
+
+    /* Alert */
+    .alert {
+      padding: .65rem 1rem; border-radius: .625rem; font-size: .85rem; margin-bottom: 1rem; display: none;
+    }
+    .alert-success { background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.3); color: var(--success); }
+    .alert-error   { background: rgba(239,68,68,.1);  border: 1px solid rgba(239,68,68,.3);  color: var(--danger); }
+
+    .hidden { display: none !important; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .spin { animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .empty { text-align: center; padding: 2.5rem; color: var(--muted); font-size: .875rem; }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <span style="font-size:1.5rem">⚙️</span>
+    <div>
+      <span>Admin Panel</span>
+      <small id="admin-role-label">—</small>
+    </div>
+  </div>
+  <nav class="sidebar-nav" id="sidebar-nav">
+    <!-- Rendered by JS based on RBAC -->
+  </nav>
+  <div class="sidebar-footer">
+    <div id="admin-name" style="font-weight:600; color:var(--text); margin-bottom:.25rem;">—</div>
+    <button class="btn-logout" id="btn-logout">ออกจากระบบ</button>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="main">
+  <div class="topbar">
+    <h2 id="page-title">Admin Panel</h2>
+    <span class="badge" id="role-badge">—</span>
+  </div>
+  <div class="content">
+    <div class="alert alert-success" id="global-success"></div>
+    <div class="alert alert-error"   id="global-error"></div>
+
+    <!-- Tab: Dashboard -->
+    <div class="tab-content" id="tab-dashboard">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;margin-bottom:1.5rem" id="stats-grid">
+        <div class="card" style="padding:1rem;text-align:center"><div style="font-size:1.5rem" id="stat-users">—</div><div style="font-size:.72rem;color:var(--muted);margin-top:.25rem">ผู้ใช้ทั้งหมด</div></div>
+        <div class="card" style="padding:1rem;text-align:center"><div style="font-size:1.5rem;color:var(--success)" id="stat-logins">—</div><div style="font-size:.72rem;color:var(--muted);margin-top:.25rem">Login วันนี้</div></div>
+        <div class="card" style="padding:1rem;text-align:center"><div style="font-size:1.5rem;color:var(--danger)" id="stat-failures">—</div><div style="font-size:.72rem;color:var(--muted);margin-top:.25rem">Login ล้มเหลว</div></div>
+        <div class="card" style="padding:1rem;text-align:center"><div style="font-size:1.5rem;color:var(--accent)" id="stat-apps">—</div><div style="font-size:.72rem;color:var(--muted);margin-top:.25rem">Apps Active</div></div>
+        <div class="card" style="padding:1rem;text-align:center"><div style="font-size:1.5rem" id="stat-opens">—</div><div style="font-size:.72rem;color:var(--muted);margin-top:.25rem">เปิด App วันนี้</div></div>
+        <div class="card" style="padding:1rem;text-align:center"><div style="font-size:1.5rem" id="stat-admins">—</div><div style="font-size:.72rem;color:var(--muted);margin-top:.25rem">Admins</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div class="card">
+          <div class="card-header"><h3>🔗 Top Apps วันนี้</h3></div>
+          <table><thead><tr><th>App</th><th>เปิด</th></tr></thead>
+          <tbody id="stats-top-apps"><tr><td colspan="2" class="empty">กำลังโหลด...</td></tr></tbody></table>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>📈 Login 7 วัน</h3></div>
+          <table><thead><tr><th>วัน</th><th>สำเร็จ</th></tr></thead>
+          <tbody id="stats-login-trend"><tr><td colspan="2" class="empty">กำลังโหลด...</td></tr></tbody>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Apps -->
+    <div class="tab-content" id="tab-apps_manage">
+      <div class="card">
+        <div class="card-header">
+          <h3>รายการ Application</h3>
+          <button class="btn btn-primary btn-sm" id="btn-add-app">+ เพิ่ม App</button>
+        </div>
+        <table id="apps-table">
+          <thead><tr><th>App ID</th><th>ชื่อ</th><th>URL</th><th>Expertise</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+          <tbody id="apps-tbody"><tr><td colspan="6" class="empty">กำลังโหลด...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab: Users -->
+    <div class="tab-content" id="tab-users_manage">
+      <div style="display:flex; gap:.5rem; margin-bottom:1rem;">
+        <button class="btn btn-primary btn-sm" id="subtab-providers-btn">Provider Users</button>
+        <button class="btn btn-ghost btn-sm"   id="subtab-positions-btn">สิทธิ์ตามตำแหน่ง</button>
+        <button class="btn btn-ghost btn-sm"   id="subtab-admins-btn">Admin Accounts</button>
+      </div>
+
+      <!-- Provider Users -->
+      <div id="subtab-providers">
+        <div class="card">
+          <div class="card-header"><h3>ผู้ใช้งาน Provider</h3></div>
+          <table>
+            <thead><tr><th>ชื่อ</th><th>ตำแหน่ง / หน่วยงาน</th><th>Provider ID</th><th>Login ล่าสุด</th><th>จัดการ</th></tr></thead>
+            <tbody id="providers-tbody"><tr><td colspan="5" class="empty">กำลังโหลด...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Position Permissions -->
+      <div id="subtab-positions" class="hidden">
+        <div class="card">
+          <div class="card-header"><h3>สิทธิ์ตามตำแหน่ง</h3></div>
+          <div id="positions-container" style="padding:.75rem;display:flex;flex-direction:column;gap:.75rem">
+            <div style="color:var(--muted);font-size:.85rem">กำลังโหลด...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin Accounts -->
+      <div id="subtab-admins" class="hidden">
+        <div class="card">
+          <div class="card-header">
+            <h3>Admin Accounts</h3>
+            <button class="btn btn-primary btn-sm" id="btn-add-admin">+ เพิ่ม Admin</button>
+          </div>
+          <table>
+            <thead><tr><th>Username</th><th>ชื่อแสดง</th><th>Role</th><th>Login ล่าสุด</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+            <tbody id="admins-tbody"><tr><td colspan="6" class="empty">กำลังโหลด...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Login Logs -->
+    <div class="tab-content" id="tab-logs_login">
+      <div class="card">
+        <div class="card-header">
+          <h3>📋 Login Logs</h3>
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <select id="log-login-event" class="btn btn-ghost btn-sm" style="height:auto">
+              <option value="">ทุก Event</option>
+              <option value="LOGIN_SUCCESS">SUCCESS</option>
+              <option value="LOGIN_FAILURE">FAILURE</option>
+              <option value="LOGIN_NO_PROVIDER_ID">NO_PROVIDER_ID</option>
+              <option value="LOGOUT">LOGOUT</option>
+            </select>
+            <select id="log-login-days" class="btn btn-ghost btn-sm" style="height:auto">
+              <option value="1">วันนี้</option>
+              <option value="7" selected>7 วัน</option>
+              <option value="30">30 วัน</option>
+            </select>
+            <button class="btn btn-primary btn-sm" id="btn-reload-login-logs">โหลด</button>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>เวลา</th><th>ชื่อ</th><th>Username</th><th>Event</th><th>IP</th><th>หมายเหตุ</th></tr></thead>
+          <tbody id="login-logs-tbody"><tr><td colspan="6" class="empty">กดโหลดเพื่อดูข้อมูล</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab: App Usage -->
+    <div class="tab-content" id="tab-logs_app">
+      <div class="card">
+        <div class="card-header">
+          <h3>🔗 App Usage Logs</h3>
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <select id="log-app-days" class="btn btn-ghost btn-sm" style="height:auto">
+              <option value="1">วันนี้</option>
+              <option value="7" selected>7 วัน</option>
+              <option value="30">30 วัน</option>
+            </select>
+            <button class="btn btn-primary btn-sm" id="btn-reload-app-logs">โหลด</button>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>เวลา</th><th>ผู้ใช้</th><th>App</th><th>IP</th></tr></thead>
+          <tbody id="app-logs-tbody"><tr><td colspan="4" class="empty">กดโหลดเพื่อดูข้อมูล</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab: Admin Audit -->
+    <div class="tab-content" id="tab-logs_audit">
+      <div class="card">
+        <div class="card-header">
+          <h3>🛡️ Admin Audit Log</h3>
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <select id="log-audit-days" class="btn btn-ghost btn-sm" style="height:auto">
+              <option value="7">7 วัน</option>
+              <option value="30" selected>30 วัน</option>
+              <option value="90">90 วัน</option>
+            </select>
+            <button class="btn btn-primary btn-sm" id="btn-reload-audit-logs">โหลด</button>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>เวลา</th><th>Admin</th><th>Action</th><th>Target</th><th>Detail</th><th>IP</th></tr></thead>
+          <tbody id="audit-logs-tbody"><tr><td colspan="6" class="empty">กดโหลดเพื่อดูข้อมูล</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab: IP Allowlist -->
+    <div class="tab-content" id="tab-ip_allowlist">
+      <div class="card" style="margin-bottom:1rem">
+        <div class="card-header">
+          <h3>🔒 IP Allowlist สำหรับ Admin Panel</h3>
+          <button class="btn btn-primary btn-sm" id="btn-add-ip">+ เพิ่ม IP</button>
+        </div>
+        <div style="padding:.75rem 1rem;font-size:.8rem;color:var(--muted);border-bottom:1px solid var(--border)">
+          ⚠️ ถ้ารายการว่าง = ไม่จำกัด IP | รองรับ IPv4, IPv6, CIDR เช่น <code>192.168.1.0/24</code>
+        </div>
+        <table>
+          <thead><tr><th>IP / CIDR</th><th>คำอธิบาย</th><th>สถานะ</th><th>เพิ่มเมื่อ</th><th>จัดการ</th></tr></thead>
+          <tbody id="ip-list-tbody"><tr><td colspan="5" class="empty">กำลังโหลด...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab: RBAC -->
+    <div class="tab-content" id="tab-rbac_settings">
+      <div class="card">
+        <div class="card-header"><h3>ตั้งค่า RBAC — กำหนด Role ขั้นต่ำของแต่ละเมนู</h3></div>
+        <table>
+          <thead><tr><th>Menu</th><th>Menu Key</th><th>Role ขั้นต่ำ</th><th>บันทึก</th></tr></thead>
+          <tbody id="rbac-tbody"><tr><td colspan="4" class="empty">กำลังโหลด...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab: 2FA Settings (superadmin only) -->
+    <div class="tab-content" id="tab-2fa_settings">
+      <div class="card" style="max-width:480px">
+        <div class="card-header"><h3>🔐 ตั้งค่า Two-Factor Authentication</h3></div>
+        <div style="padding:1.25rem;display:flex;flex-direction:column;gap:1rem">
+
+          <!-- สถานะ 2FA -->
+          <div id="2fa-status-row" style="display:flex;align-items:center;gap:.75rem;padding:.875rem 1rem;border-radius:.625rem;border:1px solid var(--border)">
+            <span id="2fa-status-icon" style="font-size:1.5rem">⏳</span>
+            <div>
+              <div id="2fa-status-text" style="font-weight:600;color:var(--text)">กำลังโหลด...</div>
+              <div id="2fa-status-sub" style="font-size:.78rem;color:var(--muted)"></div>
+            </div>
+          </div>
+
+          <!-- Setup section (แสดงเมื่อยังไม่ได้ enable) -->
+          <div id="2fa-setup-section">
+            <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem;line-height:1.6">
+              เพิ่มความปลอดภัยด้วยรหัส OTP จาก Authenticator App เช่น<br>
+              <strong style="color:var(--text)">Google Authenticator, Microsoft Authenticator, Authy</strong>
+            </p>
+            <button class="btn btn-primary btn-sm" id="btn-2fa-start-setup" style="width:auto;padding:.6rem 1.25rem">
+              เริ่มตั้งค่า 2FA
+            </button>
+          </div>
+
+          <!-- QR Code section -->
+          <div id="2fa-qr-section" class="hidden">
+            <p style="font-size:.85rem;color:var(--muted);margin-bottom:.75rem">
+              1. เปิด Authenticator App แล้วสแกน QR Code ด้านล่าง<br>
+              2. กรอกรหัส 6 หลักที่ได้เพื่อยืนยัน
+            </p>
+            <div style="text-align:center;margin:.75rem 0">
+              <img id="2fa-qr-img" src="" alt="QR Code" style="width:200px;height:200px;border-radius:.5rem;background:#fff;padding:.5rem">
+            </div>
+            <p style="font-size:.72rem;color:var(--muted);text-align:center;margin-bottom:.75rem">
+              หรือกรอก secret key ด้วยตนเอง:<br>
+              <code id="2fa-secret-text" style="font-size:.8rem;color:var(--accent);letter-spacing:.05em;word-break:break-all"></code>
+            </p>
+            <div class="form-group">
+              <label>รหัส OTP จาก App</label>
+              <input type="text" id="2fa-confirm-code" inputmode="numeric" maxlength="6"
+                     placeholder="000000" style="letter-spacing:.3em;text-align:center;font-size:1.1rem">
+            </div>
+            <div style="display:flex;gap:.5rem">
+              <button class="btn btn-ghost btn-sm" id="btn-2fa-cancel-setup" style="flex:1">ยกเลิก</button>
+              <button class="btn btn-primary btn-sm" id="btn-2fa-confirm" style="flex:1">ยืนยัน &amp; เปิดใช้งาน</button>
+            </div>
+          </div>
+
+          <!-- Disable section (แสดงเมื่อ enable แล้ว) -->
+          <div id="2fa-disable-section" class="hidden">
+            <p style="font-size:.85rem;color:var(--muted);margin-bottom:.75rem;line-height:1.6">
+              ปิดการใช้งาน 2FA จะทำให้ login ด้วย password เพียงอย่างเดียว<br>
+              กรอกรหัส OTP ปัจจุบันเพื่อยืนยันการปิด
+            </p>
+            <div class="form-group">
+              <label>รหัส OTP ยืนยัน</label>
+              <input type="text" id="2fa-disable-code" inputmode="numeric" maxlength="6"
+                     placeholder="000000" style="letter-spacing:.3em;text-align:center;font-size:1.1rem">
+            </div>
+            <button class="btn btn-danger btn-sm" id="btn-2fa-disable" style="width:auto;padding:.6rem 1.25rem">
+              ปิดใช้งาน 2FA
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Modal: App -->
+<div class="modal-overlay" id="app-modal">
+  <div class="modal">
+    <h3 id="app-modal-title">เพิ่ม Application</h3>
+    <div class="form-row" style="grid-template-columns:1fr 1fr;">
+      <div class="form-group"><label>App ID *</label><input id="app-app_id" placeholder="app-xxx"></div>
+      <div class="form-group"><label>Icon (emoji)</label><input id="app-icon" placeholder="🔷" maxlength="4"></div>
+      <div class="form-group" style="grid-column:span 2"><label>ชื่อ *</label><input id="app-name"></div>
+      <div class="form-group" style="grid-column:span 2"><label>คำอธิบาย</label><input id="app-description"></div>
+      <div class="form-group" style="grid-column:span 2"><label>URL *</label><input id="app-url" placeholder="https://..."></div>
+      <div class="form-group"><label>Required Expertise</label><input id="app-required_expertise" placeholder="(ว่าง = ทุกวิชาชีพ)"></div>
+      <div class="form-group"><label>Sort Order</label><input id="app-sort_order" type="number" value="0"></div>
+      <div class="form-group" style="grid-column:span 2">
+        <label>hcode Whitelist <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">(JSON array เช่น ["10669","10701"] — ว่าง = ทุก hcode)</span></label>
+        <input id="app-hcode_whitelist" placeholder='["10669"]'>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="btn-app-cancel">ยกเลิก</button>
+      <button class="btn btn-primary" id="btn-app-save">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Admin Account -->
+<div class="modal-overlay" id="admin-modal">
+  <div class="modal">
+    <h3 id="admin-modal-title">เพิ่ม Admin Account</h3>
+    <div class="form-row">
+      <div class="form-group"><label>Username *</label><input id="adm-username"></div>
+      <div class="form-group"><label>ชื่อแสดง</label><input id="adm-display_name"></div>
+      <div class="form-group"><label>Role</label>
+        <select id="adm-role">
+          <option value="admin2">admin2</option>
+          <option value="admin1">admin1</option>
+          <option value="superadmin">superadmin</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Password * (อย่างน้อย 8 ตัว)</label><input id="adm-password" type="password" placeholder="••••••••"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="btn-admin-cancel">ยกเลิก</button>
+      <button class="btn btn-primary" id="btn-admin-save">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: IP Allowlist -->
+<div class="modal-overlay" id="ip-modal">
+  <div class="modal" style="max-width:400px">
+    <h3>เพิ่ม IP / CIDR</h3>
+    <div class="form-row">
+      <div class="form-group"><label>IP หรือ CIDR *</label><input id="ip-input" placeholder="192.168.1.100 หรือ 192.168.1.0/24"></div>
+      <div class="form-group"><label>คำอธิบาย</label><input id="ip-label" placeholder="เช่น สำนักงาน, VPN"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="btn-ip-cancel">ยกเลิก</button>
+      <button class="btn btn-primary" id="btn-ip-save">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: User App Access -->
+<div class="modal-overlay" id="user-apps-modal">
+  <div class="modal" style="max-width:440px">
+    <h3>สิทธิ์เข้าถึง App — <span id="user-apps-name"></span></h3>
+    <p style="font-size:.78rem;color:var(--muted);margin:.25rem 0 .75rem">
+      <span style="background:rgba(99,102,241,.15);color:#a5b4fc;border-radius:.25rem;padding:.1rem .4rem;font-size:.7rem">ตามตำแหน่ง</span>
+      = ใช้สิทธิ์จากกลุ่ม &nbsp;
+      <span style="background:rgba(217,119,6,.15);color:#fbbf24;border-radius:.25rem;padding:.1rem .4rem;font-size:.7rem">กำหนดเฉพาะ</span>
+      = override รายคน
+    </p>
+    <div id="user-apps-list" style="display:flex;flex-direction:column;gap:.5rem;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="btn-userapps-close">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const api = (path, opts = {}) =>
+  fetch('/api/admin' + path, {
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token'), ...(opts.headers||{}) },
+    ...opts,
+  }).then(async r => { const d = await r.json(); if (!r.ok) throw new Error(d.message || r.status); return d; });
+
+function getCookie(n) {
+  return document.cookie.split(';').map(c=>c.trim()).find(c=>c.startsWith(n+'='))?.split('=')[1]??'';
+}
+
+let currentAdmin   = null;
+let editingAppId   = null;
+let editingAdminId = null;
+let currentUserId  = null;
+const appsCache    = {};
+const adminsCache  = {};
+
+// ─── Init ──────────────────────────────────────────────────────
+async function init() {
+  try {
+    const me = await api('/auth/me');
+    currentAdmin = me.data;
+    document.getElementById('admin-name').textContent = currentAdmin.displayName || currentAdmin.username;
+    document.getElementById('admin-role-label').textContent = currentAdmin.role;
+    document.getElementById('role-badge').textContent = currentAdmin.role;
+
+    const menus = await api('/menus');
+    renderNav(menus.data);
+    if (menus.data.length > 0) showTab(menus.data[0].menu_key);
+  } catch (e) {
+    window.location.href = '/admin/login';
+  }
+}
+
+// ─── Static button listeners (no onclick attributes) ───────────
+document.getElementById('btn-reload-login-logs').addEventListener('click', loadLoginLogs);
+document.getElementById('btn-reload-app-logs').addEventListener('click', loadAppLogs);
+document.getElementById('btn-reload-audit-logs').addEventListener('click', loadAuditLogs);
+document.getElementById('btn-add-ip').addEventListener('click', () => {
+  document.getElementById('ip-input').value = '';
+  document.getElementById('ip-label').value = '';
+  openModal('ip-modal');
+});
+document.getElementById('btn-ip-cancel').addEventListener('click', () => closeModal('ip-modal'));
+document.getElementById('btn-ip-save').addEventListener('click', saveIp);
+document.getElementById('btn-logout').addEventListener('click', doLogout);
+document.getElementById('btn-add-app').addEventListener('click', () => openAppModal(null));
+document.getElementById('btn-app-cancel').addEventListener('click', () => closeModal('app-modal'));
+document.getElementById('btn-app-save').addEventListener('click', saveApp);
+document.getElementById('btn-add-admin').addEventListener('click', openAdminModal);
+document.getElementById('btn-admin-cancel').addEventListener('click', () => closeModal('admin-modal'));
+document.getElementById('btn-admin-save').addEventListener('click', saveAdminAccount);
+document.getElementById('btn-userapps-close').addEventListener('click', () => closeModal('user-apps-modal'));
+document.getElementById('subtab-providers-btn').addEventListener('click', () => showSubTab('providers'));
+document.getElementById('subtab-positions-btn').addEventListener('click', () => showSubTab('positions'));
+document.getElementById('subtab-admins-btn').addEventListener('click', () => showSubTab('admins'));
+
+function renderNav(menus) {
+  const nav = document.getElementById('sidebar-nav');
+  nav.innerHTML = menus.map(m => `
+    <button class="nav-item" id="nav-${m.menu_key}" data-key="${m.menu_key}">
+      <span>${m.menu_icon}</span> ${m.menu_label}
+    </button>
+  `).join('');
+  nav.querySelectorAll('.nav-item').forEach(btn => {
+    btn.addEventListener('click', () => showTab(btn.dataset.key));
+  });
+}
+
+// ─── Tab Switching ──────────────────────────────────────────────
+function showTab(key) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const tab = document.getElementById('tab-' + key);
+  if (tab) tab.classList.add('active');
+  const btn = document.getElementById('nav-' + key);
+  if (btn) btn.classList.add('active');
+  document.getElementById('page-title').textContent =
+    document.querySelector(`#nav-${key}`)?.textContent?.trim() || key;
+
+  if (key === 'apps_manage')   loadApps();
+  if (key === 'users_manage')  { loadProviders(); loadPositions(); loadAdmins(); }
+  if (key === 'rbac_settings') loadRbac();
+  if (key === '2fa_settings')  load2faStatus();
+  if (key === 'dashboard')     loadStats();
+  if (key === 'ip_allowlist')  loadIpList();
+}
+
+function showSubTab(name) {
+  ['providers','positions','admins'].forEach(t => {
+    document.getElementById('subtab-' + t).classList.toggle('hidden', t !== name);
+    document.getElementById('subtab-' + t + '-btn').className = 'btn btn-sm ' + (t === name ? 'btn-primary' : 'btn-ghost');
+  });
+}
+
+// ─── Apps ──────────────────────────────────────────────────────
+async function loadApps() {
+  const tbody = document.getElementById('apps-tbody');
+  try {
+    const { data } = await api('/apps');
+    // cache apps by id
+    data.forEach(a => appsCache[a.id] = a);
+    tbody.innerHTML = data.length ? data.map(a => `
+      <tr>
+        <td><code style="font-size:.75rem">${a.app_id}</code></td>
+        <td>${a.icon} ${a.name}</td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.75rem;color:var(--muted)">${a.url}</td>
+        <td>${a.required_expertise ? `<span class="pill pill-amber">${a.required_expertise}</span>` : '<span class="pill pill-slate">ทุกคน</span>'}</td>
+        <td>${a.is_active ? '<span class="pill pill-green">เปิด</span>' : '<span class="pill pill-red">ปิด</span>'}</td>
+        <td>
+          <button class="btn btn-ghost btn-sm" data-action="edit-app" data-id="${a.id}">แก้ไข</button>
+          <button class="btn btn-danger btn-sm" data-action="toggle-app" data-id="${a.id}" data-active="${a.is_active ? 'true' : 'false'}">${a.is_active ? 'ปิด' : 'เปิด'}</button>
+          <button class="btn btn-danger btn-sm" data-action="delete-app" data-id="${a.id}">ลบ</button>
+        </td>
+      </tr>`).join('') : '<tr><td colspan="6" class="empty">ไม่มี Application</td></tr>';
+  } catch { tbody.innerHTML = '<tr><td colspan="6" class="empty" style="color:var(--danger)">โหลดข้อมูลล้มเหลว</td></tr>'; }
+}
+
+function openAppModal(app) {
+  editingAppId = app ? app.id : null;
+  document.getElementById('app-modal-title').textContent = app ? 'แก้ไข Application' : 'เพิ่ม Application';
+  ['app_id','name','description','icon','url','required_expertise','sort_order','hcode_whitelist'].forEach(k => {
+    document.getElementById('app-' + k).value = app ? (app[k] ?? '') : (k === 'sort_order' ? 0 : k === 'icon' ? '🔷' : '');
+  });
+  document.getElementById('app-app_id').disabled = !!app;
+  openModal('app-modal');
+}
+
+async function saveApp() {
+  const body = {};
+  ['app_id','name','description','icon','url','required_expertise','sort_order','hcode_whitelist'].forEach(k => {
+    body[k] = document.getElementById('app-' + k).value;
+  });
+  body.sort_order = parseInt(body.sort_order) || 0;
+  if (body.hcode_whitelist && body.hcode_whitelist.trim()) {
+    try { JSON.parse(body.hcode_whitelist); } catch { showError('hcode_whitelist ต้องเป็น JSON array ที่ถูกต้อง'); return; }
+  } else {
+    body.hcode_whitelist = null;
+  }
+  try {
+    if (editingAppId) await api('/apps/' + editingAppId, { method: 'PUT', body: JSON.stringify(body) });
+    else              await api('/apps',                  { method: 'POST', body: JSON.stringify(body) });
+    closeModal('app-modal'); showSuccess('บันทึกเรียบร้อยแล้ว'); loadApps();
+  } catch (e) { showError(e.message); }
+}
+
+async function toggleApp(id, isActive) {
+  try { await api('/apps/' + id, { method: 'PUT', body: JSON.stringify({ is_active: !isActive }) }); loadApps(); }
+  catch (e) { showError(e.message); }
+}
+
+async function deleteApp(id) {
+  if (!confirm('ต้องการลบ Application นี้?')) return;
+  try { await api('/apps/' + id, { method: 'DELETE' }); showSuccess('ลบเรียบร้อยแล้ว'); loadApps(); }
+  catch (e) { showError(e.message); }
+}
+
+// ─── Admin Accounts ────────────────────────────────────────────
+async function loadAdmins() {
+  const tbody = document.getElementById('admins-tbody');
+  try {
+    const { data } = await api('/admins');
+    data.forEach(a => adminsCache[a.id] = a);
+    tbody.innerHTML = data.length ? data.map(a => `
+      <tr>
+        <td>${a.username}</td>
+        <td>${a.display_name || '—'}</td>
+        <td><span class="pill ${a.role==='superadmin'?'pill-amber':a.role==='admin1'?'pill-green':'pill-slate'}">${a.role}</span></td>
+        <td style="font-size:.75rem;color:var(--muted)">${a.last_login_at ? new Date(a.last_login_at).toLocaleString('th-TH') : '—'}</td>
+        <td>${a.is_active ? '<span class="pill pill-green">เปิด</span>' : '<span class="pill pill-red">ปิด</span>'}</td>
+        <td>
+          <button class="btn btn-ghost btn-sm" data-action="edit-admin" data-id="${a.id}">แก้ไข</button>
+          ${a.id !== currentAdmin?.adminId ? `<button class="btn btn-danger btn-sm" data-action="delete-admin" data-id="${a.id}">ลบ</button>` : ''}
+        </td>
+      </tr>`).join('') : '<tr><td colspan="6" class="empty">ไม่มี Admin Account</td></tr>';
+  } catch { tbody.innerHTML = '<tr><td colspan="6" class="empty" style="color:var(--danger)">โหลดข้อมูลล้มเหลว</td></tr>'; }
+}
+
+function openAdminModal() {
+  editingAdminId = null;
+  document.getElementById('admin-modal-title').textContent = 'เพิ่ม Admin Account';
+  ['username','display_name','password'].forEach(k => document.getElementById('adm-' + k).value = '');
+  document.getElementById('adm-username').disabled = false;
+  document.getElementById('adm-role').value = 'admin2';
+  openModal('admin-modal');
+}
+
+function editAdmin(a) {
+  editingAdminId = a.id;
+  document.getElementById('admin-modal-title').textContent = 'แก้ไข Admin Account';
+  document.getElementById('adm-username').value     = a.username;
+  document.getElementById('adm-username').disabled  = true;
+  document.getElementById('adm-display_name').value = a.display_name || '';
+  document.getElementById('adm-role').value         = a.role;
+  document.getElementById('adm-password').value     = '';
+  openModal('admin-modal');
+}
+
+async function saveAdminAccount() {
+  const body = {
+    username:     document.getElementById('adm-username').value,
+    display_name: document.getElementById('adm-display_name').value,
+    role:         document.getElementById('adm-role').value,
+    password:     document.getElementById('adm-password').value || undefined,
+  };
+  try {
+    if (editingAdminId) await api('/admins/' + editingAdminId, { method: 'PUT', body: JSON.stringify(body) });
+    else                await api('/admins',                   { method: 'POST', body: JSON.stringify(body) });
+    closeModal('admin-modal'); showSuccess('บันทึกเรียบร้อยแล้ว'); loadAdmins();
+  } catch (e) { showError(e.message); }
+}
+
+async function deleteAdmin(id) {
+  if (!confirm('ต้องการลบ Admin Account นี้?')) return;
+  try { await api('/admins/' + id, { method: 'DELETE' }); showSuccess('ลบเรียบร้อยแล้ว'); loadAdmins(); }
+  catch (e) { showError(e.message); }
+}
+
+// ─── Provider Users ────────────────────────────────────────────
+async function loadProviders() {
+  const tbody = document.getElementById('providers-tbody');
+  try {
+    const { data } = await api('/users');
+    tbody.innerHTML = data.length ? data.map(u => `
+      <tr>
+        <td>${u.title_th || ''} ${u.firstname_th || ''} ${u.lastname_th || ''}</td>
+        <td style="font-size:.75rem;color:var(--muted)">${u.positions||'—'}<br>${u.orgs||'—'}</td>
+        <td style="font-size:.75rem;color:var(--muted)">${u.provider_id||'—'}</td>
+        <td style="font-size:.75rem;color:var(--muted)">${u.last_login_at ? new Date(u.last_login_at).toLocaleString('th-TH') : '—'}</td>
+        <td>
+          <button class="btn btn-ghost btn-sm" data-action="user-apps" data-id="${u.id}" data-name="${(u.firstname_th||'')+' '+(u.lastname_th||'')}">สิทธิ์ App</button>
+          <button class="btn btn-danger btn-sm" data-action="delete-provider" data-id="${u.id}">ลบ</button>
+        </td>
+      </tr>`).join('') : '<tr><td colspan="5" class="empty">ไม่มีผู้ใช้งาน</td></tr>';
+  } catch { tbody.innerHTML = '<tr><td colspan="5" class="empty" style="color:var(--danger)">โหลดข้อมูลล้มเหลว</td></tr>'; }
+}
+
+async function openUserApps(userId, name) {
+  currentUserId = userId;
+  document.getElementById('user-apps-name').textContent = name.trim();
+  document.getElementById('user-apps-list').innerHTML = '<div style="color:var(--muted)">กำลังโหลด...</div>';
+  openModal('user-apps-modal');
+  try {
+    const { data } = await api('/users/' + userId + '/apps');
+    const list = document.getElementById('user-apps-list');
+    list.innerHTML = data.map(a => {
+      const allowed  = !!a.is_allowed;
+      const src      = a.permission_source; // 'individual' | 'position' | 'default'
+      const srcLabel = src === 'individual'
+        ? '<span style="background:rgba(217,119,6,.15);color:#fbbf24;border-radius:.25rem;padding:.1rem .35rem;font-size:.68rem">กำหนดเฉพาะ</span>'
+        : src === 'position'
+        ? '<span style="background:rgba(99,102,241,.15);color:#a5b4fc;border-radius:.25rem;padding:.1rem .35rem;font-size:.68rem">ตามตำแหน่ง</span>'
+        : '<span style="background:rgba(100,116,139,.15);color:#94a3b8;border-radius:.25rem;padding:.1rem .35rem;font-size:.68rem">ค่าเริ่มต้น</span>';
+      const resetBtn = src === 'individual'
+        ? `<button class="btn btn-sm" style="background:rgba(100,116,139,.2);color:#94a3b8;padding:.25rem .5rem;font-size:.72rem"
+               data-action="reset-user-app" data-user="${userId}" data-app="${a.app_id}" title="รีเซ็ตเป็นค่าตามตำแหน่ง">↩</button>`
+        : '';
+      return `
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.5rem .75rem;background:rgba(0,0,0,.2);border-radius:.5rem;">
+        <span style="flex:1;min-width:0">${a.icon} ${a.name}<br><span style="margin-top:.2rem;display:block">${srcLabel}</span></span>
+        <div style="display:flex;gap:.35rem;flex-shrink:0">
+          <button class="btn btn-sm ${allowed ? 'btn-success' : 'btn-danger'}"
+                  data-action="toggle-user-app" data-user="${userId}" data-app="${a.app_id}" data-allowed="${allowed ? 'true' : 'false'}">
+            ${allowed ? '✓ อนุญาต' : '✗ ปิดกั้น'}
+          </button>
+          ${resetBtn}
+        </div>
+      </div>`;
+    }).join('');
+  } catch { document.getElementById('user-apps-list').innerHTML = '<div style="color:var(--danger)">โหลดล้มเหลว</div>'; }
+}
+
+async function toggleUserApp(userId, appId, current) {
+  try {
+    await api(`/users/${userId}/apps/${appId}`, { method: 'PUT', body: JSON.stringify({ is_allowed: !current }) });
+    openUserApps(userId, document.getElementById('user-apps-name').textContent);
+  } catch (e) { showError(e.message); }
+}
+
+async function resetUserApp(userId, appId) {
+  try {
+    await api(`/users/${userId}/apps/${appId}`, { method: 'DELETE' });
+    openUserApps(userId, document.getElementById('user-apps-name').textContent);
+  } catch (e) { showError(e.message); }
+}
+
+// ─── Position Permissions ───────────────────────────────────────
+async function loadPositions() {
+  const container = document.getElementById('positions-container');
+  try {
+    const { data: positions } = await api('/positions');
+    if (!positions.length) {
+      container.innerHTML = '<div style="color:var(--muted);font-size:.85rem">ยังไม่มีข้อมูลตำแหน่งในระบบ (user ต้อง login ก่อน)</div>';
+      return;
+    }
+    container.innerHTML = positions.map(p => `
+      <div class="card" style="margin:0">
+        <div class="card-header" style="cursor:pointer" data-action="expand-position" data-pos="${encodeURIComponent(p.position)}">
+          <h3 style="font-size:.9rem">👥 ${p.position} <span style="color:var(--muted);font-weight:400;font-size:.78rem">(${p.user_count} คน)</span></h3>
+          <span style="color:var(--muted);font-size:.8rem">คลิกเพื่อจัดการสิทธิ์</span>
+        </div>
+        <div id="pos-apps-${encodeURIComponent(p.position)}" class="hidden" style="padding:.75rem;display:flex;flex-direction:column;gap:.4rem"></div>
+      </div>`).join('');
+  } catch (e) { container.innerHTML = `<div style="color:var(--danger)">${e.message}</div>`; }
+}
+
+async function expandPosition(posEncoded) {
+  const pos = decodeURIComponent(posEncoded);
+  const container = document.getElementById('pos-apps-' + posEncoded);
+  if (!container.classList.contains('hidden')) {
+    container.classList.add('hidden');
+    return;
+  }
+  container.classList.remove('hidden');
+  container.innerHTML = '<div style="color:var(--muted);font-size:.8rem">กำลังโหลด...</div>';
+  try {
+    const { data } = await api('/positions/' + encodeURIComponent(pos) + '/apps');
+    container.innerHTML = data.map(a => {
+      const allowed = !!a.is_allowed;
+      const hasRule = a.id !== null;
+      const srcLabel = hasRule
+        ? `<span style="background:rgba(217,119,6,.15);color:#fbbf24;border-radius:.25rem;padding:.1rem .35rem;font-size:.68rem">กำหนดไว้</span>`
+        : `<span style="background:rgba(100,116,139,.15);color:#94a3b8;border-radius:.25rem;padding:.1rem .35rem;font-size:.68rem">ค่าเริ่มต้น (อนุญาต)</span>`;
+      const resetBtn = hasRule
+        ? `<button class="btn btn-sm" style="background:rgba(100,116,139,.2);color:#94a3b8;padding:.25rem .5rem;font-size:.72rem"
+               data-action="reset-pos-app" data-pos="${posEncoded}" data-app="${a.app_id}" title="รีเซ็ตเป็นค่าเริ่มต้น">↩</button>`
+        : '';
+      return `
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.4rem .6rem;background:rgba(0,0,0,.15);border-radius:.375rem;">
+        <span style="flex:1;font-size:.85rem">${a.icon} ${a.name} ${srcLabel}</span>
+        <div style="display:flex;gap:.3rem;flex-shrink:0">
+          <button class="btn btn-sm ${allowed ? 'btn-success' : 'btn-danger'}"
+                  data-action="toggle-pos-app" data-pos="${posEncoded}" data-app="${a.app_id}" data-allowed="${allowed ? 'true' : 'false'}">
+            ${allowed ? '✓ อนุญาต' : '✗ ปิดกั้น'}
+          </button>
+          ${resetBtn}
+        </div>
+      </div>`;
+    }).join('');
+  } catch (e) { container.innerHTML = `<div style="color:var(--danger)">${e.message}</div>`; }
+}
+
+async function togglePosApp(posEncoded, appId, current) {
+  try {
+    const pos = decodeURIComponent(posEncoded);
+    await api(`/positions/${encodeURIComponent(pos)}/apps/${appId}`, {
+      method: 'PUT', body: JSON.stringify({ is_allowed: !current })
+    });
+    const container = document.getElementById('pos-apps-' + posEncoded);
+    container.classList.add('hidden');
+    expandPosition(posEncoded);
+  } catch (e) { showError(e.message); }
+}
+
+async function resetPosApp(posEncoded, appId) {
+  try {
+    const pos = decodeURIComponent(posEncoded);
+    await api(`/positions/${encodeURIComponent(pos)}/apps/${appId}`, { method: 'DELETE' });
+    const container = document.getElementById('pos-apps-' + posEncoded);
+    container.classList.add('hidden');
+    expandPosition(posEncoded);
+  } catch (e) { showError(e.message); }
+}
+
+async function deleteProvider(id) {
+  if (!confirm('ต้องการลบผู้ใช้งานนี้ออกจากระบบ?')) return;
+  try { await api('/users/' + id, { method: 'DELETE' }); showSuccess('ลบเรียบร้อยแล้ว'); loadProviders(); }
+  catch (e) { showError(e.message); }
+}
+
+// ─── RBAC ──────────────────────────────────────────────────────
+async function loadRbac() {
+  const tbody = document.getElementById('rbac-tbody');
+  try {
+    const { data } = await api('/rbac');
+    tbody.innerHTML = data.map(m => `
+      <tr>
+        <td>${m.menu_icon} ${m.menu_label}</td>
+        <td><code style="font-size:.75rem">${m.menu_key}</code></td>
+        <td>
+          <select id="rbac-select-${m.menu_key}" style="background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:.375rem;padding:.3rem .6rem;color:var(--text);font-family:inherit;font-size:.8rem">
+            <option value="user"       ${m.min_role==='user'       ?'selected':''}>user</option>
+            <option value="admin2"     ${m.min_role==='admin2'     ?'selected':''}>admin2</option>
+            <option value="admin1"     ${m.min_role==='admin1'     ?'selected':''}>admin1</option>
+            <option value="superadmin" ${m.min_role==='superadmin' ?'selected':''}>superadmin</option>
+          </select>
+        </td>
+        <td>
+          <button class="btn btn-primary btn-sm" data-action="save-rbac" data-key="${m.menu_key}">บันทึก</button>
+        </td>
+      </tr>`).join('');
+  } catch { tbody.innerHTML = '<tr><td colspan="4" class="empty" style="color:var(--danger)">โหลดข้อมูลล้มเหลว</td></tr>'; }
+}
+
+async function saveRbac(menuKey) {
+  const role = document.getElementById('rbac-select-' + menuKey).value;
+  try { await api('/rbac/' + menuKey, { method: 'PUT', body: JSON.stringify({ min_role: role }) }); showSuccess('บันทึกเรียบร้อยแล้ว'); }
+  catch (e) { showError(e.message); }
+}
+
+// ─── Dashboard Stats ───────────────────────────────────────────
+async function loadStats() {
+  try {
+    const { data: s } = await api('/stats');
+    document.getElementById('stat-users').textContent    = s.total_users ?? '—';
+    document.getElementById('stat-logins').textContent   = s.logins_today ?? '—';
+    document.getElementById('stat-failures').textContent = s.failures_today ?? '—';
+    document.getElementById('stat-apps').textContent     = s.active_apps ?? '—';
+    document.getElementById('stat-opens').textContent    = s.app_opens_today ?? '—';
+    document.getElementById('stat-admins').textContent   = s.total_admins ?? '—';
+
+    document.getElementById('stats-top-apps').innerHTML =
+      s.top_apps?.length ? s.top_apps.map(a => `<tr><td>${a.app_id}</td><td>${a.cnt}</td></tr>`).join('')
+      : '<tr><td colspan="2" class="empty">ยังไม่มีข้อมูล</td></tr>';
+
+    document.getElementById('stats-login-trend').innerHTML =
+      s.login_trend?.length ? s.login_trend.map(r => `<tr><td style="font-size:.8rem">${new Date(r.day).toLocaleDateString('th-TH')}</td><td>${r.cnt}</td></tr>`).join('')
+      : '<tr><td colspan="2" class="empty">ยังไม่มีข้อมูล</td></tr>';
+  } catch (e) { showError(e.message); }
+}
+
+// ─── Login Logs ────────────────────────────────────────────────
+async function loadLoginLogs() {
+  const tbody  = document.getElementById('login-logs-tbody');
+  const event  = document.getElementById('log-login-event').value;
+  const days   = document.getElementById('log-login-days').value;
+  tbody.innerHTML = '<tr><td colspan="6" class="empty">กำลังโหลด...</td></tr>';
+  try {
+    const params = new URLSearchParams({ days, limit: 200 });
+    if (event) params.set('event', event);
+    const { data } = await api('/logs/login?' + params);
+    tbody.innerHTML = data.length ? data.map(r => {
+      const eventCls = r.event === 'LOGIN_SUCCESS' ? 'pill-green' : r.event === 'LOGOUT' ? 'pill-slate' : 'pill-red';
+      return `<tr>
+        <td style="font-size:.73rem;white-space:nowrap">${new Date(r.created_at).toLocaleString('th-TH')}</td>
+        <td style="font-size:.8rem">${r.fullname_th?.trim() || '—'}</td>
+        <td style="font-size:.78rem;color:var(--muted)">${r.username || '—'}</td>
+        <td><span class="pill ${eventCls}" style="font-size:.68rem">${r.event}</span></td>
+        <td style="font-size:.73rem;color:var(--muted)">${r.ip_address || '—'}</td>
+        <td style="font-size:.73rem;color:var(--muted)">${r.error_msg || ''}</td>
+      </tr>`;
+    }).join('') : '<tr><td colspan="6" class="empty">ไม่มีข้อมูลในช่วงนี้</td></tr>';
+  } catch (e) { tbody.innerHTML = `<tr><td colspan="6" class="empty" style="color:var(--danger)">${e.message}</td></tr>`; }
+}
+
+// ─── App Usage Logs ────────────────────────────────────────────
+async function loadAppLogs() {
+  const tbody = document.getElementById('app-logs-tbody');
+  const days  = document.getElementById('log-app-days').value;
+  tbody.innerHTML = '<tr><td colspan="4" class="empty">กำลังโหลด...</td></tr>';
+  try {
+    const { data } = await api('/logs/app?days=' + days + '&limit=200');
+    tbody.innerHTML = data.length ? data.map(r => `<tr>
+      <td style="font-size:.73rem;white-space:nowrap">${new Date(r.created_at).toLocaleString('th-TH')}</td>
+      <td style="font-size:.8rem">${r.username || r.account_id || '—'}</td>
+      <td><span class="pill pill-amber" style="font-size:.68rem">${r.app_id}</span> <span style="font-size:.78rem;color:var(--muted)">${r.app_name||''}</span></td>
+      <td style="font-size:.73rem;color:var(--muted)">${r.ip_address || '—'}</td>
+    </tr>`).join('') : '<tr><td colspan="4" class="empty">ไม่มีข้อมูลในช่วงนี้</td></tr>';
+  } catch (e) { tbody.innerHTML = `<tr><td colspan="4" class="empty" style="color:var(--danger)">${e.message}</td></tr>`; }
+}
+
+// ─── Admin Audit Logs ──────────────────────────────────────────
+async function loadAuditLogs() {
+  const tbody = document.getElementById('audit-logs-tbody');
+  const days  = document.getElementById('log-audit-days').value;
+  tbody.innerHTML = '<tr><td colspan="6" class="empty">กำลังโหลด...</td></tr>';
+  try {
+    const { data } = await api('/logs/audit?days=' + days + '&limit=200');
+    tbody.innerHTML = data.length ? data.map(r => `<tr>
+      <td style="font-size:.73rem;white-space:nowrap">${new Date(r.created_at).toLocaleString('th-TH')}</td>
+      <td style="font-size:.78rem">${r.username || '—'} <span class="pill pill-slate" style="font-size:.65rem">${r.role||''}</span></td>
+      <td><span class="pill pill-amber" style="font-size:.68rem">${r.action}</span></td>
+      <td style="font-size:.73rem;color:var(--muted)">${r.target_type||''} ${r.target_id||''}</td>
+      <td style="font-size:.7rem;color:var(--muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.detail||''}">${r.detail||''}</td>
+      <td style="font-size:.73rem;color:var(--muted)">${r.ip_address||'—'}</td>
+    </tr>`).join('') : '<tr><td colspan="6" class="empty">ไม่มีข้อมูลในช่วงนี้</td></tr>';
+  } catch (e) { tbody.innerHTML = `<tr><td colspan="6" class="empty" style="color:var(--danger)">${e.message}</td></tr>`; }
+}
+
+// ─── IP Allowlist ──────────────────────────────────────────────
+async function loadIpList() {
+  const tbody = document.getElementById('ip-list-tbody');
+  try {
+    const { data } = await api('/ip-allowlist');
+    tbody.innerHTML = data.length ? data.map(r => `<tr>
+      <td><code style="font-size:.8rem">${r.ip}</code></td>
+      <td style="font-size:.8rem">${r.label || '—'}</td>
+      <td>${r.is_active ? '<span class="pill pill-green">เปิด</span>' : '<span class="pill pill-red">ปิด</span>'}</td>
+      <td style="font-size:.73rem;color:var(--muted)">${new Date(r.created_at).toLocaleString('th-TH')}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" data-action="toggle-ip" data-id="${r.id}" data-active="${r.is_active ? 'true' : 'false'}">${r.is_active ? 'ปิด' : 'เปิด'}</button>
+        <button class="btn btn-danger btn-sm" data-action="delete-ip" data-id="${r.id}">ลบ</button>
+      </td>
+    </tr>`).join('') : '<tr><td colspan="5" class="empty">ไม่มี IP ในรายการ (ไม่จำกัด IP)</td></tr>';
+  } catch (e) { tbody.innerHTML = `<tr><td colspan="5" class="empty" style="color:var(--danger)">${e.message}</td></tr>`; }
+}
+
+async function saveIp() {
+  const ip    = document.getElementById('ip-input').value.trim();
+  const label = document.getElementById('ip-label').value.trim();
+  if (!ip) { showError('กรุณากรอก IP หรือ CIDR'); return; }
+  try {
+    await api('/ip-allowlist', { method: 'POST', body: JSON.stringify({ ip, label }) });
+    closeModal('ip-modal'); showSuccess('เพิ่ม IP เรียบร้อยแล้ว'); loadIpList();
+  } catch (e) { showError(e.message); }
+}
+
+async function toggleIp(id, isActive) {
+  try {
+    await api('/ip-allowlist/' + id, { method: 'PUT', body: JSON.stringify({ is_active: !isActive }) });
+    loadIpList();
+  } catch (e) { showError(e.message); }
+}
+
+async function deleteIp(id) {
+  if (!confirm('ต้องการลบ IP นี้ออกจาก allowlist?')) return;
+  try { await api('/ip-allowlist/' + id, { method: 'DELETE' }); showSuccess('ลบ IP เรียบร้อยแล้ว'); loadIpList(); }
+  catch (e) { showError(e.message); }
+}
+
+// ─── Event delegation for dynamic table buttons ─────────────────
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const action = btn.dataset.action;
+  const id = parseInt(btn.dataset.id);
+
+  if (action === 'edit-app')        openAppModal(appsCache[id]);
+  if (action === 'toggle-app')      toggleApp(id, btn.dataset.active === 'true');
+  if (action === 'delete-app')      deleteApp(id);
+  if (action === 'edit-admin')      editAdmin(adminsCache[id]);
+  if (action === 'delete-admin')    deleteAdmin(id);
+  if (action === 'user-apps')       openUserApps(id, btn.dataset.name);
+  if (action === 'delete-provider') deleteProvider(id);
+  if (action === 'save-rbac')       saveRbac(btn.dataset.key);
+  if (action === 'toggle-user-app') {
+    toggleUserApp(parseInt(btn.dataset.user), btn.dataset.app, btn.dataset.allowed === 'true');
+  }
+  if (action === 'reset-user-app') {
+    resetUserApp(parseInt(btn.dataset.user), btn.dataset.app);
+  }
+  if (action === 'expand-position') expandPosition(btn.dataset.pos);
+  if (action === 'toggle-pos-app') {
+    togglePosApp(btn.dataset.pos, btn.dataset.app, btn.dataset.allowed === 'true');
+  }
+  if (action === 'reset-pos-app') {
+    resetPosApp(btn.dataset.pos, btn.dataset.app);
+  }
+  if (action === 'toggle-ip') toggleIp(id, btn.dataset.active === 'true');
+  if (action === 'delete-ip') deleteIp(id);
+});
+
+// ─── Utilities ─────────────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function showSuccess(msg) {
+  const el = document.getElementById('global-success');
+  el.textContent = '✓ ' + msg; el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 3000);
+}
+function showError(msg) {
+  const el = document.getElementById('global-error');
+  el.textContent = '✗ ' + msg; el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 4000);
+}
+
+async function doLogout() {
+  await api('/auth/logout', { method: 'POST' }).catch(() => {});
+  window.location.href = '/admin/login';
+}
+
+// Close modal on backdrop click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ─── 2FA Management ────────────────────────────────────────────
+let _2faSecret = '';
+
+async function load2faStatus() {
+  try {
+    const { enabled } = await api('/auth/2fa/status');
+    const icon = document.getElementById('2fa-status-icon');
+    const text = document.getElementById('2fa-status-text');
+    const sub  = document.getElementById('2fa-status-sub');
+
+    if (enabled) {
+      icon.textContent = '✅';
+      text.textContent = 'เปิดใช้งาน 2FA แล้ว';
+      text.style.color = '#4ade80';
+      sub.textContent  = 'บัญชีได้รับการปกป้องด้วย TOTP Authentication';
+      document.getElementById('2fa-setup-section').classList.add('hidden');
+      document.getElementById('2fa-disable-section').classList.remove('hidden');
+    } else {
+      icon.textContent = '⚠️';
+      text.textContent = 'ยังไม่ได้เปิดใช้งาน 2FA';
+      text.style.color = '#fbbf24';
+      sub.textContent  = 'แนะนำให้เปิด 2FA เพื่อความปลอดภัยของบัญชี superadmin';
+      document.getElementById('2fa-setup-section').classList.remove('hidden');
+      document.getElementById('2fa-disable-section').classList.add('hidden');
+    }
+    document.getElementById('2fa-qr-section').classList.add('hidden');
+  } catch (e) { showError(e.message); }
+}
+
+document.getElementById('btn-2fa-start-setup').addEventListener('click', async () => {
+  try {
+    const { secret, qr } = await api('/auth/2fa/setup');
+    _2faSecret = secret;
+    document.getElementById('2fa-qr-img').src = qr;
+    document.getElementById('2fa-secret-text').textContent = secret;
+    document.getElementById('2fa-qr-section').classList.remove('hidden');
+    document.getElementById('2fa-setup-section').classList.add('hidden');
+    document.getElementById('2fa-confirm-code').value = '';
+    document.getElementById('2fa-confirm-code').focus();
+  } catch (e) { showError(e.message); }
+});
+
+document.getElementById('btn-2fa-cancel-setup').addEventListener('click', () => {
+  _2faSecret = '';
+  document.getElementById('2fa-qr-section').classList.add('hidden');
+  document.getElementById('2fa-setup-section').classList.remove('hidden');
+});
+
+document.getElementById('btn-2fa-confirm').addEventListener('click', async () => {
+  const code = document.getElementById('2fa-confirm-code').value.trim();
+  if (!code) { showError('กรุณากรอกรหัส OTP'); return; }
+  try {
+    await api('/auth/2fa/setup', { method: 'POST', body: JSON.stringify({ secret: _2faSecret, code }) });
+    showSuccess('เปิดใช้งาน 2FA เรียบร้อยแล้ว — จะถูกขอรหัส OTP ทุกครั้งที่ login');
+    _2faSecret = '';
+    load2faStatus();
+  } catch (e) { showError(e.message); }
+});
+
+document.getElementById('btn-2fa-disable').addEventListener('click', async () => {
+  const code = document.getElementById('2fa-disable-code').value.trim();
+  if (!code) { showError('กรุณากรอกรหัส OTP เพื่อยืนยัน'); return; }
+  if (!confirm('แน่ใจหรือไม่ว่าต้องการปิดใช้งาน 2FA?')) return;
+  try {
+    await api('/auth/2fa/setup', { method: 'DELETE', body: JSON.stringify({ code }) });
+    showSuccess('ปิดใช้งาน 2FA เรียบร้อยแล้ว');
+    document.getElementById('2fa-disable-code').value = '';
+    load2faStatus();
+  } catch (e) { showError(e.message); }
+});
+
+init();
+</script>
+</body>
+</html>

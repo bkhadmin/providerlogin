@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="pragma" content="no-cache" />
+    <meta http-equiv="expires" content="-1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Internet hotspot - Log in</title>
+    <link rel="stylesheet" href="css/style.css">
+	 <link rel="stylesheet" href="css/core.min.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500&display=swap" rel="stylesheet">
+<style>
+@media screen and (min-width:550px){
+.textwidth{ 
+width: 320px;
+
+}
+
+}
+
+@media screen and (max-width: 450px){
+.textwidth{ 
+max-width: 220px;
+
+}
+}
+body{
+background-color:#cfe9dc;
+font-family: "Prompt";	
+
+}
+
+.formContent {
+    -webkit-border-radius: 10px 10px 10px 10px;
+    border-radius: 10px 10px 10px 10px;
+    background: #fff;
+    padding: 30px;
+    width: 90%;
+    max-width: 880px;
+    position: relative;
+    padding: 30px;
+	padding-left: 40px;
+	padding-right: 40px;
+    -webkit-box-shadow: 0 30px 60px 0 rgb(0 0 0 / 30%);
+    box-shadow: 0 30px 60px 0 rgb(0 0 0 / 30%);
+    text-align: center;
+}
+
+</style>
+
+</head>
+
+<body>
+
+    <!-- two other colors
+
+<body class="lite">
+<body class="dark">
+
+-->
+
+    $(if chap-id)
+    <form name="sendin" action="$(link-login-only)" method="post" style="display:none">
+        <input type="hidden" name="username" />
+        <input type="hidden" name="password" />
+        <input type="hidden" name="dst" value="$(link-orig)" />
+        <input type="hidden" name="popup" value="true" />
+    </form>
+
+    <script src="/md5.js"></script>
+    <script>
+        function doLogin() {
+            document.sendin.username.value = document.login.username.value;
+            document.sendin.password.value = hexMD5('$(chap-id)' + document.login.password.value + '$(chap-challenge)');
+            document.sendin.submit();
+            return false;
+        }
+
+    </script>
+    $(endif)
+	<div  style="float:left; font-size:16px;  width:100%; color:#413863;  padding-bottom:80px;  padding-top:50px; " >
+    <div class="container h-custom">
+		<div class="row d-flex justify-content-center align-items-center h-100">
+            
+		<div class="formContent" >
+		<div class="container">
+		<div class="row">
+	   <div class="col-md-12 col-lg-6 col-xl-5">
+                    <center><img src = "img/icongreen.png" style = "width:220px; padding-top:4px;padding-bottom:8px;" ></center>
+                 <center><span style = "font-family:Prompt; font-size:26px;padding-top:10px; color:green;" >   โรงพยาบาลบางระกำ  </span>
+				 <br> <span style = "font-family:Prompt; font-size:22px;padding-top:10px; color:green;" > ระบบพิสูจน์ตัวตน <br> Internet Authentication <br> ตามพระราชบัญญัติ <br> คอมพิวเตอร์  ๒๕๖๐ </span>
+				 </center>
+					</div>
+	  
+	  <div class="col-md-12 col-lg-6  offset-xl-1" style = "border-radius: 0.5rem; padding-top:30px; padding-left:30px;" >
+                <form  name="login" action="$(link-login-only)" method="post" $(if chap-id) onSubmit="return doLogin()" $(endif)>
+                    <input type="hidden" name="dst" value="$(link-orig)" />
+                    <input type="hidden" name="popup" value="true" />
+					
+
+                    <p class="info $(if error)alert$(endif)" style = "display:none;" >
+                        $(if error == "")Please log in to use the internet hotspot service $(if trial == 'yes')<br />Free trial available, <a href="$(link-login-only)?dst=$(link-orig-esc)&amp;username=T-$(mac-esc)">click here</a>.$(endif)
+                        $(endif)
+
+                        $(if error)$(error)$(endif)
+                    </p>
+					 <div  style = "padding-bottom:20px;width:100%;" ><span style = "font-family:Prompt;font-size:38px;width:100%; color:#28a745;" > Member <br> Login </span></div>
+                    <label>
+                        <img class="ico" src="img/user.svg" alt="#" />
+                        <input name="username" type="text" value="$(username)" placeholder="Username" class = "textwidth" />
+                    </label>
+
+                    <label>
+                        <img class="ico" src="img/password.svg" alt="#" />
+                        <input name="password" type="password" placeholder="Password" class = "textwidth" />
+                    </label>
+
+                       <a class="btn btn-primary btn-lg btn-block" style="background-color:#28a745;border-radius: 50px; border-color:#28a745; " href="#!" role="button"><i class="fab fa-twitter me-2"></i>Connect</a>
+					  
+              
+                    
+
+
+
+                </form>
+                <p class="info bt">Powered by MikroTik RouterOS</p>
+            </div>
+			</div>
+			</div>
+			
+			</div>
+			
+        </div>
+    </div>
+	</div>
+</body>
+
+</html>

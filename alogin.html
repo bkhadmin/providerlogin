@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="refresh" content="2; url=$(link-redirect)">
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="expires" content="-1">
+    <title>Internet hotspot - Redirect</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script>
+        function startClock() {
+            $(if popup == 'true')
+            open('$(link-status)', 'hotspot_status', 'toolbar=0,location=0,directories=0,status=0,menubars=0,resizable=1,width=290,height=200');
+        $(endif)
+        location.href = unescape('$(link-redirect-esc)');
+        }
+
+    </script> 
+</head>
+<style>
+body {
+    background: #a2a09b;
+    background: -webkit-linear-gradient(315deg,hsla(236.6,0%,53.52%,1) 0,hsla(236.6,0%,53.52%,0) 70%),-webkit-linear-gradient(65deg,hsla(220.75,34.93%,26.52%,1) 10%,hsla(220.75,34.93%,26.52%,0) 80%),-webkit-linear-gradient(135deg,hsla(46.42,36.62%,83.92%,1) 15%,hsla(46.42,36.62%,83.92%,0) 80%),-webkit-linear-gradient(205deg,hsla(191.32,50.68%,56.45%,1) 100%,hsla(191.32,50.68%,56.45%,0) 70%);
+    background: linear-gradient(135deg,hsl(152deg 51% 56%) 0,hsla(236.6,0%,53.52%,0) 70%),linear-gradient(25deg,hsl(133deg 33% 80%) 10%,hsla(220.75,34.93%,26.52%,0) 80%),linear-gradient(315deg,hsl(199deg 37% 84%) 15%,hsla(46.42,36.62%,83.92%,0) 80%),linear-gradient(245deg,hsl(179deg 51% 56%) 100%,hsla(191.32,50.68%,56.45%,0) 70%);
+}
+</style>
+<body onLoad="startClock()">
+    <div class="ie-fixMinHeight">
+        <div class="main">
+            <div class="wrap">
+                <h1>You are logged in</h1>
+                <p class="info">If nothing happens, click <a href="$(link-redirect)">here</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

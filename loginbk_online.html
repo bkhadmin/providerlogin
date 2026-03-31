@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="pragma" content="no-cache" />
+    <meta http-equiv="expires" content="-1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>%title</title>
+    <link rel="stylesheet" href="style.css">
+	 <link rel="stylesheet" href="core.min.css">
+
+<style>
+@media screen and (min-width:550px){
+.textwidth{ 
+width: 320px;
+
+}
+
+}
+
+@media screen and (max-width: 450px){
+.textwidth{ 
+max-width: 220px;
+
+}
+}
+body{
+background-color:#cfe9dc;
+font-family: "Prompt";	
+
+}
+
+.formContent {
+    -webkit-border-radius: 10px 10px 10px 10px;
+    border-radius: 10px 10px 10px 10px;
+    background: #fff;
+    padding: 30px;
+    width: 90%;
+    max-width: 880px;
+    position: relative;
+    padding: 30px;
+	padding-left: 40px;
+	padding-right: 40px;
+    -webkit-box-shadow: 0 30px 60px 0 rgb(0 0 0 / 30%);
+    box-shadow: 0 30px 60px 0 rgb(0 0 0 / 30%);
+    text-align: center;
+}
+
+</style>
+<script type="text/javascript">
+<!--
+var reqUrl="%requrl";
+var btnObj;
+
+function focus() {
+if (geturl() != false) {
+		var btnObj = document.getElementById('btnCont');
+	} else {
+		var btnObj = document.getElementById('btnClose');
+	}
+	btnObj.focus();
+}
+
+function go() {
+	var url = geturl();
+		if (url) {
+			location.assign(url);
+		} else {
+			btnObj.disabled = true;
+		}
+	}
+
+function geturl() {
+	if (reqUrl.length != 0 && reqUrl != "%requrl") {
+		return reqUrl;
+	}
+	return false;
+}
+
+function closeWn() {
+	window.opener = self;
+if (window.opener == null) {
+	window.open('','_parent','');
+}
+	window.close(); 
+}
+//-->
+</script>
+
+</head>
+
+<body onload="javascript:focus();">
+
+    <!-- two other colors
+
+<body class="lite">
+<body class="dark">
+
+-->
+   
+	<div  style="float:left; font-size:16px;  width:100%; color:#413863;  padding-bottom:80px;  padding-top:50px; " >
+    <div class="container h-custom">
+		<div class="row d-flex justify-content-center align-items-center h-100">
+            
+		<div class="formContent" >
+		<div class="container">
+		<div class="row">
+	   <div class="col-md-12 col-lg-6 col-xl-5">
+                    <center><img src = "images/icongreen.png" style = "width:220px; padding-top:4px;padding-bottom:8px;" ></center>
+                 <center><span style = "font-size:26px;padding-top:10px; color:green;" >   โรงพยาบาลบางระกำ  </span>
+				 <br> <span style = "font-size:22px;padding-top:10px; color:green;" > ระบบพิสูจน์ตัวตน <br> Internet Authentication <br> ตามพระราชบัญญัติ <br> คอมพิวเตอร์  ๒๕๖๐ </span>
+				 </center>
+					</div>
+	  
+	  <div class="col-md-12 col-lg-6  offset-xl-1" style = "border-radius: 0.5rem; padding-top:30px; padding-left:30px;" >
+                
+                    
+					 <div  style = "padding-bottom:20px;width:100%;" ><span style = "font-size:30px;width:100%; color:#28a745;" > Currently Online </span><br>  <span style = "font-size:25px;width:100%; color:#28a745;" > (You are currently online) </span></div>
+					 <hr />
+					 <p>ท่านกำลัง online อยู่ในระบบ</p>
+					 <p>%message</p>
+                    
+                
+              		<div class="row" align="center" id="formbar">
+					<div>
+					<input name="btnCont" class="black btn btn-block btn-large" type="button" id="btnCont" value="Continue" onclick="javascript:go();"/> 
+                    </div>
+                    </div><br>
+					<div class="row" align="center" id="formbar">
+					<div>              
+					<input name="btnLogout" class="black btn btn-block btn-large" type="button" id="btnLogout" value="Logout" onclick="javascript:location.replace('user-authen.php?logout=%challenge');"/><br />
+					</div>
+					<div class="row" align="center" id="formbar">
+					<div>
+       				<input name="btnClose" class="black btn btn-block btn-large" type="button" id="btnClose" value="Close" onclick="javascript:closeWn();"/>
+                    </div>		      
+
+
+
+                
+				
+                <p class="info bt">Powered by IBSG</p>
+            </div>
+			</div>
+			</div>
+			
+			</div>
+			
+        </div>
+    </div>
+	</div>
+</body>
+
+</html>

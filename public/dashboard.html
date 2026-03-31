@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Dashboard บุคลากรทางการแพทย์ - Provider Portal">
+  <title>Dashboard | Provider Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body class="dashboard-page">
+
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar glass-card">
+    <div class="sidebar-brand">
+      <div class="brand-icon brand-icon-sm">
+        <svg viewBox="0 0 48 48" fill="none"><path d="M24 4C13 4 4 13 4 24s9 20 20 20 20-9 20-20S35 4 24 4z" fill="url(#g)"/><path d="M22 14h4v8h8v4h-8v8h-4v-8h-8v-4h8z" fill="white"/><defs><linearGradient id="g" x1="4" y1="4" x2="44" y2="44"><stop offset="0%" stop-color="#06b6d4"/><stop offset="100%" stop-color="#6366f1"/></linearGradient></defs></svg>
+      </div>
+      <span>Provider Portal</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="#apps" class="nav-item active" id="nav-apps">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span>แอปพลิเคชัน</span>
+      </a>
+      <a href="#profile" class="nav-item" id="nav-profile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>โปรไฟล์</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-mini" id="user-mini">
+        <div class="user-avatar" id="user-avatar-mini">?</div>
+        <div class="user-mini-info">
+          <span id="user-display-name">กำลังโหลด...</span>
+          <small id="user-org">—</small>
+        </div>
+      </div>
+      <button id="logout-btn" class="btn btn-ghost btn-sm logout-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        ออกจากระบบ
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Header -->
+    <header class="dash-header">
+      <div>
+        <h1 id="welcome-title">ยินดีต้อนรับ</h1>
+        <p id="welcome-sub" class="text-muted">กำลังโหลดข้อมูล...</p>
+      </div>
+      <div class="header-badge">
+        <div class="status-dot"></div>
+        <span>เชื่อมต่อแล้ว</span>
+      </div>
+    </header>
+
+    <!-- SECTION: Apps -->
+    <section id="section-apps" class="dash-section">
+      <div class="section-header">
+        <h2>แอปพลิเคชัน</h2>
+        <p class="text-muted">เลือกระบบที่ต้องการใช้งาน</p>
+      </div>
+      <div id="apps-grid" class="apps-grid">
+        <div class="app-skeleton"></div>
+        <div class="app-skeleton"></div>
+        <div class="app-skeleton"></div>
+      </div>
+    </section>
+
+    <!-- SECTION: Profile -->
+    <section id="section-profile" class="dash-section hidden">
+      <div class="section-header">
+        <h2>ข้อมูลโปรไฟล์</h2>
+      </div>
+      <div class="profile-card glass-card">
+        <div class="profile-avatar" id="profile-avatar">?</div>
+        <div class="profile-info">
+          <h3 id="profile-fullname">—</h3>
+          <p id="profile-provider-id" class="text-muted">Provider ID: —</p>
+        </div>
+        <div class="profile-details" id="profile-details"></div>
+        <div class="org-list" id="org-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/assets/app.js"></script>
+  <script>
+    let userProfile = null;
+
+    // ─── Navigation ──────────────────────────────────────────────────────────
+    document.querySelectorAll('.nav-item').forEach(link => {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        this.classList.add('active');
+        const target = this.id.replace('nav-', '');
+        document.querySelectorAll('.dash-section').forEach(s => s.classList.add('hidden'));
+        document.getElementById('section-' + target).classList.remove('hidden');
+      });
+    });
+
+    // ─── Load profile ─────────────────────────────────────────────────────────
+    async function loadDashboard() {
+      try {
+        const res = await fetch('/api/auth/profile', { credentials: 'include' });
+        if (!res.ok) {
+          window.location.href = '/?error=session_expired';
+          return;
+        }
+        const { data } = await res.json();
+        userProfile = data;
+        renderProfile(data);
+      } catch {
+        window.location.href = '/?error=login_failed';
+      }
+
+      try {
+        const res = await fetch('/api/apps', { credentials: 'include' });
+        const { data } = await res.json();
+        renderApps(data);
+      } catch {
+        document.getElementById('apps-grid').innerHTML = '<p class="text-muted">ไม่สามารถโหลดรายการแอปได้</p>';
+      }
+    }
+
+    function renderProfile(user) {
+      const initials = ((user.firstnameTh || '?')[0] + (user.lastnameTh || '?')[0]).toUpperCase();
+      document.getElementById('user-avatar-mini').textContent = initials;
+      document.getElementById('profile-avatar').textContent = initials;
+
+      const fullname = `${user.titleTh || ''}${user.firstnameTh || ''} ${user.lastnameTh || ''}`.trim();
+      document.getElementById('user-display-name').textContent = fullname || user.username;
+      document.getElementById('welcome-title').textContent = `ยินดีต้อนรับ, ${user.firstnameTh || user.username}`;
+      document.getElementById('welcome-sub').textContent = user.organizations?.[0]?.hnameTh || '';
+      document.getElementById('profile-fullname').textContent = fullname;
+      document.getElementById('profile-provider-id').textContent = `Provider ID: ${user.providerId || '—'}`;
+
+      const org = user.organizations?.[0];
+      if (org) document.getElementById('user-org').textContent = org.hnameTh || '—';
+
+      // Profile fields
+      const fields = [
+        ['ชื่อ-นามสกุล (EN)', `${user.firstnameEn || ''} ${user.lastnameEn || ''}`.trim() || '—'],
+        ['Username', user.username || '—'],
+        ['Account ID', user.accountId || '—'],
+        ['เข้าสู่ระบบเมื่อ', user.loginAt ? new Date(user.loginAt).toLocaleString('th-TH') : '—'],
+      ];
+      document.getElementById('profile-details').innerHTML = fields.map(([label, value]) => `
+        <div class="profile-field">
+          <span class="field-label">${label}</span>
+          <span class="field-value">${value}</span>
+        </div>
+      `).join('');
+
+      // Organizations
+      if (user.organizations?.length) {
+        document.getElementById('org-list').innerHTML = `
+          <h4>สังกัด / Organizations</h4>
+          ${user.organizations.map(org => `
+            <div class="org-item glass-card-inner">
+              <div class="org-hcode">${org.hcode || '—'}</div>
+              <div>
+                <strong>${org.hnameTh || '—'}</strong>
+                <p>${org.position || '—'} ${org.expertise ? '· ' + org.expertise : ''}</p>
+                ${org.isHrAdmin ? '<span class="badge badge-blue">HR Admin</span>' : ''}
+                ${org.isDirector ? '<span class="badge badge-purple">Director</span>' : ''}
+              </div>
+            </div>
+          `).join('')}
+        `;
+      }
+    }
+
+    function renderApps(apps) {
+      const grid = document.getElementById('apps-grid');
+      if (!apps?.length) {
+        grid.innerHTML = '<p class="text-muted no-apps">ไม่มีแอปพลิเคชันที่สามารถเข้าใช้งานได้</p>';
+        return;
+      }
+      // Use data-* attributes instead of onclick= (CSP compliant)
+      grid.innerHTML = apps.map(app => `
+        <div class="app-card glass-card" data-app-id="${app.app_id}" data-app-url="${app.url}" role="button" tabindex="0">
+          <div class="app-icon">${app.icon}</div>
+          <h3>${app.name}</h3>
+          <p>${app.description}</p>
+          <div class="app-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </div>
+        </div>
+      `).join('');
+
+      // Bind click events after rendering
+      grid.querySelectorAll('.app-card').forEach(card => {
+        card.addEventListener('click', () => openApp(card.dataset.appId, card.dataset.appUrl));
+        card.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') openApp(card.dataset.appId, card.dataset.appUrl);
+        });
+      });
+    }
+
+    async function openApp(appId, appUrl) {
+      try {
+        const res = await fetch(`/api/apps/${appId}/token`, { credentials: 'include' });
+        const data = await res.json();
+        if (!res.ok || !data.token) {
+          alert('ไม่สามารถเปิดแอปพลิเคชันได้: ' + (data.message || `HTTP ${res.status}`));
+          return;
+        }
+        window.open(`${appUrl}?sso_token=${data.token}`, '_blank');
+      } catch (err) {
+        alert('ไม่สามารถเปิดแอปพลิเคชันได้ กรุณาลองใหม่อีกครั้ง');
+      }
+    }
+
+    async function doLogout() {
+      const csrfToken = getCookie('csrf_token');
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'X-CSRF-Token': csrfToken },
+      });
+      window.location.href = '/';
+    }
+
+    function getCookie(name) {
+      return document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith(name + '='))?.split('=')[1] || '';
+    }
+
+    // Init
+    loadDashboard();
+
+    // Silent session refresh ทุก 30 นาที
+    setInterval(async () => {
+      try {
+        await fetch('/api/auth/refresh', {
+          method: 'POST', credentials: 'include',
+          headers: { 'X-CSRF-Token': getCookie('csrf_token') },
+        });
+      } catch { /* ignore — session จะหมดอายุตามปกติ */ }
+    }, 30 * 60 * 1000);
+
+    // Bind logout (CSP-compliant via addEventListener)
+    document.getElementById('logout-btn').addEventListener('click', doLogout);
+  </script>
+</body>
+</html>

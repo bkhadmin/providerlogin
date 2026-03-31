@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login | Provider Portal</title>
+  <style>
+    @font-face { font-family:'Sarabun'; font-weight:400; src:url('/fonts/Sarabun-400.ttf') format('truetype'); }
+    @font-face { font-family:'Sarabun'; font-weight:600; src:url('/fonts/Sarabun-600.ttf') format('truetype'); }
+    @font-face { font-family:'Sarabun'; font-weight:700; src:url('/fonts/Sarabun-700.ttf') format('truetype'); }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Sarabun', sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .card {
+      background: rgba(30, 41, 59, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(71, 85, 105, 0.4);
+      border-radius: 1.5rem;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 360px;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    }
+    .brand { text-align: center; margin-bottom: 2rem; }
+    .brand-icon {
+      width: 60px; height: 60px;
+      background: linear-gradient(135deg, #d97706, #b45309);
+      border-radius: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.75rem;
+      margin-bottom: 0.75rem;
+      box-shadow: 0 8px 24px rgba(217,119,6,0.35);
+    }
+    .brand h1 { color: #fff; font-size: 1.125rem; font-weight: 700; }
+    .brand p  { color: #f59e0b; font-size: 0.7rem; text-transform: uppercase; letter-spacing: .1em; margin-top: .25rem; }
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; color: #94a3b8; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .4rem; }
+    input {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(71, 85, 105, 0.6);
+      border-radius: 0.625rem;
+      padding: .65rem .875rem;
+      color: #fff;
+      font-family: 'Sarabun', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color .2s;
+    }
+    input:focus { border-color: #d97706; }
+    input.otp-input {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: .4em;
+      text-align: center;
+    }
+    .btn {
+      width: 100%;
+      background: linear-gradient(135deg, #d97706, #b45309);
+      color: #fff;
+      border: none;
+      border-radius: .75rem;
+      padding: .85rem;
+      font-family: 'Sarabun', sans-serif;
+      font-size: .95rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 1.25rem;
+      transition: opacity .2s, transform .1s;
+    }
+    .btn:hover   { opacity: .9; }
+    .btn:active  { transform: scale(.98); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid rgba(71,85,105,.5);
+      color: #94a3b8;
+      margin-top: .5rem;
+    }
+    .error {
+      background: rgba(239,68,68,.1);
+      border: 1px solid rgba(239,68,68,.3);
+      color: #f87171;
+      border-radius: .75rem;
+      padding: .65rem 1rem;
+      font-size: .85rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+    .otp-hint {
+      text-align: center;
+      color: #64748b;
+      font-size: .8rem;
+      margin-top: .75rem;
+      line-height: 1.5;
+    }
+    .otp-icon {
+      font-size: 2.5rem;
+      text-align: center;
+      margin-bottom: .75rem;
+    }
+    .shield-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .3rem;
+      background: rgba(34,197,94,.1);
+      border: 1px solid rgba(34,197,94,.3);
+      color: #4ade80;
+      border-radius: 2rem;
+      padding: .25rem .75rem;
+      font-size: .72rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    .back { text-align: center; margin-top: 1.25rem; }
+    .back a { color: #64748b; font-size: .825rem; text-decoration: none; }
+    .back a:hover { color: #94a3b8; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">
+      <div class="brand-icon">⚙️</div>
+      <h1>Admin Panel</h1>
+      <p>Provider Portal Management</p>
+    </div>
+
+    <!-- Step 1: Username / Password -->
+    <div id="step-login">
+      <div class="error" id="login-error"></div>
+      <form id="login-form">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="username" autocomplete="username" required placeholder="admin username">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="password" autocomplete="current-password" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn" id="login-btn">เข้าสู่ระบบ Admin</button>
+      </form>
+      <div class="back"><a href="/">← กลับหน้าหลัก</a></div>
+    </div>
+
+    <!-- Step 2: 2FA OTP -->
+    <div id="step-2fa" class="hidden">
+      <div class="otp-icon">🔐</div>
+      <div style="text-align:center;margin-bottom:1.25rem">
+        <div class="shield-badge">🛡️ Two-Factor Authentication</div>
+        <p style="color:#e2e8f0;font-size:.95rem;font-weight:600">ยืนยันตัวตน 2FA</p>
+        <p style="color:#64748b;font-size:.8rem;margin-top:.35rem">เปิด Authenticator App แล้วกรอกรหัส 6 หลัก</p>
+      </div>
+      <div class="error" id="otp-error"></div>
+      <form id="otp-form">
+        <div class="form-group">
+          <label>รหัส OTP</label>
+          <input type="text" id="otp-code" class="otp-input" inputmode="numeric" pattern="[0-9]*"
+                 maxlength="6" autocomplete="one-time-code" required placeholder="000000">
+        </div>
+        <button type="submit" class="btn" id="otp-btn">ยืนยัน OTP</button>
+        <button type="button" class="btn btn-ghost" id="back-to-login-btn">← กลับ Login</button>
+      </form>
+      <p class="otp-hint">รหัสจะเปลี่ยนทุก 30 วินาที<br>กรอกก่อนหมดอายุ</p>
+    </div>
+  </div>
+
+  <script>
+    function getCookie(name) {
+      return document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith(name + '='))?.split('=')[1] ?? '';
+    }
+
+    function showError(elId, msg) {
+      const el = document.getElementById(elId);
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+    function hideError(elId) {
+      document.getElementById(elId).style.display = 'none';
+    }
+
+    // ── Step 1: Login ──────────────────────────────────────────
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideError('login-error');
+      const btn = document.getElementById('login-btn');
+      btn.disabled = true;
+      btn.textContent = 'กำลังตรวจสอบ...';
+
+      try {
+        const res = await fetch('/api/admin/auth/login', {
+          method:      'POST',
+          headers:     { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
+          credentials: 'include',
+          body: JSON.stringify({
+            username: document.getElementById('username').value,
+            password: document.getElementById('password').value,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.message || 'Login ไม่สำเร็จ');
+
+        if (data.requires_2fa) {
+          // สลับไปหน้า OTP
+          document.getElementById('step-login').classList.add('hidden');
+          document.getElementById('step-2fa').classList.remove('hidden');
+          document.getElementById('otp-code').focus();
+        } else {
+          window.location.href = '/admin';
+        }
+      } catch (ex) {
+        showError('login-error', ex.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'เข้าสู่ระบบ Admin';
+      }
+    });
+
+    // ── Step 2: OTP ────────────────────────────────────────────
+    document.getElementById('otp-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideError('otp-error');
+      const btn = document.getElementById('otp-btn');
+      btn.disabled = true;
+      btn.textContent = 'กำลังตรวจสอบ...';
+
+      try {
+        const res = await fetch('/api/admin/auth/2fa/verify', {
+          method:      'POST',
+          headers:     { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
+          credentials: 'include',
+          body: JSON.stringify({ code: document.getElementById('otp-code').value }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.message || 'OTP ไม่ถูกต้อง');
+        window.location.href = '/admin';
+      } catch (ex) {
+        showError('otp-error', ex.message);
+        document.getElementById('otp-code').value = '';
+        document.getElementById('otp-code').focus();
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'ยืนยัน OTP';
+      }
+    });
+
+    // ── ย้อนกลับ ──────────────────────────────────────────────
+    document.getElementById('back-to-login-btn').addEventListener('click', () => {
+      document.getElementById('step-2fa').classList.add('hidden');
+      document.getElementById('step-login').classList.remove('hidden');
+      document.getElementById('otp-code').value = '';
+      hideError('otp-error');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Processing... | Provider Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body class="callback-page">
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+
+  <div class="callback-container glass-card">
+    <div id="processing-state">
+      <div class="spinner spinner-lg"></div>
+      <h2>กำลังตรวจสอบข้อมูล...</h2>
+      <p>กรุณารอสักครู่ ระบบกำลังยืนยันตัวตนของท่าน</p>
+    </div>
+    <div id="error-state" class="hidden">
+      <div class="error-icon">⚠️</div>
+      <h2>เกิดข้อผิดพลาด</h2>
+      <p id="callback-error-text">ไม่สามารถเข้าสู่ระบบได้</p>
+      <a href="/" class="btn btn-secondary">กลับหน้าหลัก</a>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const params = new URLSearchParams(window.location.search);
+      const code  = params.get('code');
+      const state = params.get('state');
+      const error = params.get('error');
+
+      function showError(msg) {
+        document.getElementById('processing-state').classList.add('hidden');
+        document.getElementById('error-state').classList.remove('hidden');
+        const msgs = {
+          'no_provider_id': 'ไม่พบข้อมูล Provider ID ของท่าน',
+          'invalid_state':  'Session หมดอายุ กรุณาลองใหม่',
+          'no_code':        'ไม่ได้รับ Authorization Code',
+          'login_failed':   'การเข้าสู่ระบบล้มเหลว กรุณาลองใหม่',
+          'unauthorized':   'ข้อมูลประจำตัวไม่ถูกต้อง',
+        };
+        document.getElementById('callback-error-text').textContent =
+          msgs[msg] || msg || 'เกิดข้อผิดพลาด';
+      }
+
+      // ถ้า Health ID ส่ง error กลับมา
+      if (error) { showError(error); return; }
+
+      // ถ้าไม่มี code ใน URL
+      if (!code) { showError('no_code'); return; }
+
+      // POST code + state ไปให้ backend ทันที (ตาม SKILL.md pattern)
+      fetch('/api/auth/callback', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ code, state }),
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            window.location.href = '/dashboard.html';
+          } else {
+            showError(data.error || 'login_failed');
+          }
+        })
+        .catch(() => showError('login_failed'));
+    })();
+  </script>
+</body>
+</html>

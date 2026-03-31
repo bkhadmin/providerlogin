@@ -1,0 +1,108 @@
+'use strict';
+
+const { Router } = require('express');
+const { requireAuth } = require('../middleware/auth');
+const { listActiveApps, addAppAccessLog } = require('../database/adminModel');
+const { pool } = require('../database/db');
+
+const router = Router();
+
+/**
+ * GET /api/apps
+ * คืนรายการ app ที่ user เข้าถึงได้ โดยกรองจาก:
+ * 1. is_active = 1
+ * 2. required_expertise ตรงกับ user (ถ้ามี)
+ * 3. hcode_whitelist ตรงกับ hcode ของ user (ถ้ากำหนด)
+ * 4. user_app_access override (ถ้า admin ตั้งค่าไว้)
+ */
+router.get('/', requireAuth, async (req, res) => {
+  const allApps        = await listActiveApps();
+  const userExpertises = (req.user.organizations || []).map(o => o.expertise).filter(Boolean);
+  const userHcodes     = (req.user.organizations || []).map(o => o.hcode).filter(Boolean);
+
+  // ดึง override ของ user นี้
+  const [accessRows] = await pool.query(
+    `SELECT uaa.app_id, uaa.is_allowed
+     FROM user_app_access uaa
+     JOIN users u ON u.id = uaa.user_id
+     WHERE u.account_id = ?`,
+    [req.user.accountId]
+  );
+  const accessMap = Object.fromEntries(accessRows.map(r => [r.app_id, r.is_allowed]));
+
+  const accessibleApps = allApps
+    .filter(app => {
+      // individual override มีสิทธิ์สูงสุด
+      if (app.app_id in accessMap) return accessMap[app.app_id] === 1;
+      // hcode_whitelist: ถ้ากำหนดไว้ ต้อง hcode ตรง
+      if (app.hcode_whitelist) {
+        try {
+          const allowed = JSON.parse(app.hcode_whitelist);
+          if (Array.isArray(allowed) && allowed.length > 0) {
+            if (!userHcodes.some(h => allowed.includes(h))) return false;
+          }
+        } catch { /* ignore parse error */ }
+      }
+      // required_expertise
+      if (!app.required_expertise) return true;
+      return userExpertises.includes(app.required_expertise);
+    })
+    .map(({ id, created_at, updated_at, ...rest }) => rest);
+
+  res.json({ success: true, data: accessibleApps });
+});
+
+/**
+ * GET /api/apps/:appId/token
+ * ออก SSO token อายุ 15 นาทีสำหรับ app นั้น + บันทึก app_access_logs
+ */
+router.get('/:appId/token', requireAuth, async (req, res) => {
+  const { appId } = req.params;
+  const jwt    = require('jsonwebtoken');
+  const config = require('../config/config');
+
+  // ตรวจว่า app มีอยู่และ active
+  const [appRows] = await pool.query(
+    'SELECT app_id, name FROM applications WHERE app_id = ? AND is_active = 1',
+    [appId]
+  );
+  if (!appRows.length) {
+    return res.status(404).json({ success: false, message: 'App not found or inactive.' });
+  }
+  const appInfo = appRows[0];
+
+  const u      = req.user;
+  const org    = (u.organizations && u.organizations[0]) || {};
+  const nameTh = `${u.titleTh ?? ''}${u.firstnameTh ?? ''} ${u.lastnameTh ?? ''}`.trim();
+
+  const appToken = jwt.sign(
+    {
+      sub:        u.accountId,
+      username:   u.username,
+      providerId: u.providerId,
+      nameTh,
+      hcode:      org.hcode    ?? '',
+      hnameTh:    org.hnameTh  ?? '',
+      position:   org.position ?? '',
+      appId,
+      scope:      'app-access',
+    },
+    config.jwt.secret,
+    { expiresIn: '15m', issuer: 'providerlogin', audience: 'web-apps' }
+  );
+
+  // บันทึก usage log (non-blocking)
+  addAppAccessLog({
+    userId:    u.dbUserId ?? null,
+    accountId: u.accountId,
+    username:  u.username,
+    appId,
+    appName:   appInfo.name,
+    ip:        req.ip,
+    userAgent: req.headers['user-agent'],
+  }).catch(() => {});
+
+  res.json({ success: true, token: appToken, expiresIn: 900 });
+});
+
+module.exports = router;

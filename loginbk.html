@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="pragma" content="no-cache" />
+    <meta http-equiv="expires" content="-1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>%title</title>
+    <link rel="stylesheet" href="style.css">
+	<link rel="stylesheet" href="core.min.css">
+    
+
+<style>
+@media screen and (min-width:550px){
+.textwidth{ 
+width: 320px;
+
+}
+
+}
+
+@media screen and (max-width: 450px){
+.textwidth{ 
+max-width: 220px;
+
+}
+}
+body{
+background-color:#cfe9dc;
+font-family: "Prompt";	
+
+}
+
+.formContent {
+    -webkit-border-radius: 10px 10px 10px 10px;
+    border-radius: 10px 10px 10px 10px;
+    background: #fff;
+    padding: 30px;
+    width: 90%;
+    max-width: 880px;
+    position: relative;
+    padding: 30px;
+	padding-left: 40px;
+	padding-right: 40px;
+    -webkit-box-shadow: 0 30px 60px 0 rgb(0 0 0 / 30%);
+    box-shadow: 0 30px 60px 0 rgb(0 0 0 / 30%);
+    text-align: center;
+}
+
+</style>
+
+
+<script type="text/javascript">
+
+
+	<!--
+	function initialize() {
+		var txtObj = document.getElementById('txtLogin');
+		if (txtObj.value.length != 0) {
+			var chkObj = document.getElementById('chkRemember');
+			var pwdObj = document.getElementById('txtPasswd');
+			chkObj.checked = true;
+			pwdObj.focus();
+		} else {
+			txtObj.focus();
+		}
+	}
+
+	function goCheck() {
+		var reqForm = document.forms[0];
+		var reqCheck = document.getElementById('reqCheck');
+		reqCheck.value = "true";
+		reqForm.submit();
+	}
+
+	function goUsage() {
+			location.assign('/user');
+	}
+	//-->
+	</script>
+	<style>
+	    body {
+          display: flex;
+          min-height: 100vh;
+          flex-direction: column;
+        }
+
+        main {
+          flex: 1 0 auto;
+        }
+		.checkbox-black[type="checkbox"].filled-in:checked + label:after{
+     		border: 2px solid black;
+     		background-color: black;
+		}        
+	</style>
+</head>
+
+<body>
+
+    <!-- two other colors
+
+<body class="lite">
+<body class="dark">
+
+-->
+   
+	<div  style="float:left; font-size:16px;  width:100%; color:#413863;  padding-bottom:80px;  padding-top:50px; " >
+    <div class="container h-custom">
+		<div class="row d-flex justify-content-center align-items-center h-100">
+            
+		<div class="formContent" >
+		<div class="container">
+		<div class="row">
+	   <div class="col-md-12 col-lg-6 col-xl-5">
+                    <center><img src = "images/icongreen.png" style = "width:220px; padding-top:4px;padding-bottom:8px;" ></center>
+                 <center><span style = "font-size:26px;padding-top:10px; color:green;" >   โรงพยาบาลบางระกำ  </span>
+				 <br> <span style = "font-size:22px;padding-top:10px; color:green;" > ระบบพิสูจน์ตัวตน <br> Internet Authentication <br> ตามพระราชบัญญัติ <br> คอมพิวเตอร์  ๒๕๖๐ </span>
+				 </center>
+					</div>
+	  
+	  <div class="col-md-12 col-lg-6  offset-xl-1" style = "border-radius: 0.5rem; padding-top:30px; padding-left:30px;" >
+                <form  name="login" enctype="application/x-www-form-urlencoded" action="%authproto://%authaddr/portal/user-authen.php" method="post" >
+                    
+					 <div  style = "padding-bottom:20px;width:100%;" ><span style = "font-size:38px;width:100%; color:#28a745;" > Member <br> Login </span></div>
+                   
+			<a href="https://moph.id.th/oauth/redirect?client_id=0195223d-d418-70df-8bae-8a3f5b7915b1&redirect_uri=http://localhost/providerlogin/reciveproviderid.php&response_type=code
+"><img src="images/providerB1.png" alt="Provider ID Login" /></a>
+                      
+                   <br> <br>
+
+		    <label>
+                        <img class="ico" src="images/user.png" alt="#" />
+                        <input id="txtLogin" name="txtLogin" maxlength="24" type="text" value="%login" placeholder="Username" class = "textwidth" />
+                    </label>
+
+                    <label>
+                        <img class="ico" src="images/password.png" alt="#" />
+                        <input name="txtPasswd" id="txtPasswd" type="password" maxlength="24" value="%passwd" placeholder="Password" class = "textwidth" />
+                    </label>
+									
+						<input name="reqUrl" type="hidden" class="hide" id="reqUrl" value="%requrl" />
+						<input name="reqCheck" type="hidden" class="hide" id="reqCheck" value="false" />
+						
+                       
+					   <input id="btnLogin" name="btnLogin" type="submit" value="Login" onsubmit="this.disabled=true" />
+              
+                    
+
+
+
+                </form>
+				<div class="row">
+					<div class="center-align col l12 s12">
+						<p class="center-align">%Announce</p>
+					</div>
+                <p class="info bt">Powered by IBSG</p>
+            </div>
+			</div>
+			</div>
+			
+			</div>
+			
+        </div>
+    </div>
+	</div>
+</body>
+
+</html>

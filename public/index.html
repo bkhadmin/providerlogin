@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="description" content="ระบบเข้าสู่ระบบด้วย Provider ID สำหรับบุคลากรทางการแพทย์">
+  <title>Provider Login | ระบบเข้าสู่ระบบ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body class="login-page">
+
+  <!-- Animated background orbs -->
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+
+  <div class="login-container">
+    <!-- Logo / Brand -->
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M24 4C13 4 4 13 4 24s9 20 20 20 20-9 20-20S35 4 24 4z" fill="url(#grad)"/>
+          <path d="M22 14h4v8h8v4h-8v8h-4v-8h-8v-4h8z" fill="white"/>
+          <defs>
+            <linearGradient id="grad" x1="4" y1="4" x2="44" y2="44">
+              <stop offset="0%" stop-color="#06b6d4"/>
+              <stop offset="100%" stop-color="#6366f1"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>Provider Portal</h1>
+        <p>ระบบบุคลากรทางการแพทย์</p>
+      </div>
+    </div>
+
+    <!-- Login Card -->
+    <div class="login-card glass-card">
+      <div class="card-header">
+        <h2>เข้าสู่ระบบ</h2>
+        <p>สำหรับบุคลากรที่มี Provider ID ของกระทรวงสาธารณสุข</p>
+      </div>
+
+      <!-- Error Message -->
+      <div id="error-message" class="alert alert-error hidden" role="alert">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
+        <span id="error-text"></span>
+      </div>
+
+      <!-- Login Button -->
+      <div class="login-section">
+        <button id="login-btn" class="btn btn-primary btn-login">
+          <span class="btn-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+              <polyline points="10 17 15 12 10 7"/>
+              <line x1="15" y1="12" x2="3" y2="12"/>
+            </svg>
+          </span>
+          <span class="btn-text">เข้าสู่ระบบด้วย Health ID</span>
+          <span class="btn-sub">Provider ID (กระทรวงสาธารณสุข)</span>
+        </button>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loading-state" class="loading-state hidden">
+        <div class="spinner"></div>
+        <p>กำลังเชื่อมต่อ Health ID...</p>
+      </div>
+
+      <!-- Security Badge -->
+      <div class="security-info">
+        <div class="security-badge">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+          <span>ปลอดภัยด้วย OAuth 2.0 + PKCE</span>
+        </div>
+        <div class="security-badge">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>
+          <span>เชื่อมต่อผ่าน HTTPS เท่านั้น</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="footer-text">
+      © 2026 Provider Portal · กระทรวงสาธารณสุข
+    </p>
+  </div>
+
+  <script src="/assets/app.js"></script>
+  <script>
+    // Check URL for error param
+    window.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const error = params.get('error');
+      if (error) {
+        const messages = {
+          'no_provider_id': 'ไม่พบข้อมูล Provider ID ของท่าน กรุณาติดต่อผู้ดูแลระบบ',
+          'invalid_state': 'Session หมดอายุ กรุณาลองใหม่อีกครั้ง',
+          'unauthorized': 'ข้อมูลประจำตัวไม่ถูกต้อง',
+          'login_failed': 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาลองใหม่อีกครั้ง',
+        };
+        showError(messages[error] || 'เกิดข้อผิดพลาด: ' + error);
+        // Clean URL
+        window.history.replaceState({}, '', '/');
+      }
+
+      // Bind login button via addEventListener (CSP-compliant)
+      document.getElementById('login-btn').addEventListener('click', startLogin);
+    });
+
+    function startLogin() {
+      const btn = document.getElementById('login-btn');
+      const loading = document.getElementById('loading-state');
+      btn.disabled = true;
+      btn.classList.add('btn-loading');
+      loading.classList.remove('hidden');
+      window.location.href = '/api/auth/login';
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('error-message');
+      document.getElementById('error-text').textContent = msg;
+      el.classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>
