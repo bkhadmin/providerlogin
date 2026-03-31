@@ -374,6 +374,51 @@ router.delete('/positions/:position/apps/:appId', requireAdminAuth, requireRole(
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
 
+// Batch: grant all / revoke all
+router.post('/positions/:position/apps/grant-all', requireAdminAuth, requireRole('admin1'), async (req, res) => {
+  try {
+    const { is_allowed } = req.body ?? {};
+    await m.grantAllPositionApps(req.params.position, is_allowed !== false, req.admin.adminId);
+    await m.addAuditLog({ adminId: req.admin.adminId, username: req.admin.username, role: req.admin.role,
+      action: is_allowed !== false ? 'POSITION_GRANT_ALL' : 'POSITION_REVOKE_ALL',
+      targetType: 'position', targetId: req.params.position, ip: req.ip });
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// Batch: reset all (คืนค่า default ทั้งหมด)
+router.post('/positions/:position/apps/reset-all', requireAdminAuth, requireRole('admin1'), async (req, res) => {
+  try {
+    await m.resetAllPositionAppAccess(req.params.position);
+    await m.addAuditLog({ adminId: req.admin.adminId, username: req.admin.username, role: req.admin.role,
+      action: 'POSITION_RESET_ALL', targetType: 'position', targetId: req.params.position, ip: req.ip });
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// Batch: copy from another position
+router.post('/positions/:position/apps/copy-from', requireAdminAuth, requireRole('admin1'), async (req, res) => {
+  try {
+    const { from_position } = req.body ?? {};
+    if (!from_position) return res.status(400).json({ success: false, message: 'from_position required' });
+    await m.copyPositionAppAccess(from_position, req.params.position, req.admin.adminId);
+    await m.addAuditLog({ adminId: req.admin.adminId, username: req.admin.username, role: req.admin.role,
+      action: 'POSITION_COPY_FROM', targetType: 'position', targetId: req.params.position,
+      detail: { from: from_position }, ip: req.ip });
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// Batch: set หลาย app พร้อมกัน
+router.post('/positions/:position/apps/batch', requireAdminAuth, requireRole('admin1'), async (req, res) => {
+  try {
+    const { apps } = req.body ?? {};
+    if (!Array.isArray(apps) || !apps.length) return res.status(400).json({ success: false, message: 'apps array required' });
+    await m.batchSetPositionAppAccess(req.params.position, apps, req.admin.adminId);
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
 // ─── Dashboard Stats ──────────────────────────────────────────
 
 router.get('/stats', requireAdminAuth, requireRole('admin2'), async (req, res) => {
@@ -416,13 +461,38 @@ router.get('/logs/audit', requireAdminAuth, requireRole('superadmin'), async (re
 
 router.get('/logs/app', requireAdminAuth, requireRole('admin1'), async (req, res) => {
   try {
-    const { limit = 100, offset = 0, app_id, days = 7 } = req.query;
+    const { limit = 500, offset = 0, app_id, date_from, date_to } = req.query;
+    const today = new Date().toISOString().slice(0, 10);
     const rows = await m.getAppAccessLogs({
-      limit:  Math.min(parseInt(limit, 10) || 100, 500),
-      offset: parseInt(offset, 10) || 0,
-      appId:  app_id || null,
-      days:   parseInt(days, 10) || 7,
+      limit:    Math.min(parseInt(limit, 10) || 500, 1000),
+      offset:   parseInt(offset, 10) || 0,
+      appId:    app_id || null,
+      dateFrom: date_from || today,
+      dateTo:   date_to   || today,
     });
+    res.json({ success: true, data: rows });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+router.get('/logs/app/summary', requireAdminAuth, requireRole('admin1'), async (req, res) => {
+  try {
+    const { app_id, date_from, date_to } = req.query;
+    const today = new Date().toISOString().slice(0, 10);
+    const summary = await m.getAppAccessSummary({
+      appId:    app_id    || null,
+      dateFrom: date_from || today,
+      dateTo:   date_to   || today,
+    });
+    res.json({ success: true, data: summary });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// คืนรายชื่อ app ทั้งหมดที่มีใน access logs (สำหรับ dropdown filter)
+router.get('/logs/app/apps', requireAdminAuth, requireRole('admin1'), async (req, res) => {
+  try {
+    const [rows] = await require('../database/db').pool.query(
+      'SELECT DISTINCT app_id, app_name FROM app_access_logs ORDER BY app_name ASC'
+    );
     res.json({ success: true, data: rows });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });

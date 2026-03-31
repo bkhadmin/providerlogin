@@ -72,4 +72,5 @@ INSERT IGNORE INTO `admin_menus` (`menu_key`, `menu_label`, `menu_icon`, `min_ro
 ('logs_login',   'Login Logs',          '📋', 'admin1',     4),
 ('logs_app',     'App Usage',           '🔗', 'admin1',     5),
 ('logs_audit',   'Admin Audit',         '🛡️', 'superadmin', 6),
-('ip_allowlist', 'IP Allowlist',        '🔒', 'superadmin', 7);
+('ip_allowlist', 'IP Allowlist',        '🔒', 'superadmin', 7),
+('2fa_settings', 'ตั้งค่า 2FA',         '🔑', 'superadmin', 8);

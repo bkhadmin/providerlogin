@@ -251,6 +251,48 @@ async function resetPositionAppAccess(position, appId) {
   );
 }
 
+async function grantAllPositionApps(position, isAllowed, grantedBy) {
+  const [apps] = await pool.query('SELECT app_id FROM applications WHERE is_active = 1');
+  if (!apps.length) return;
+  const values = apps.map(a => [position, a.app_id, isAllowed ? 1 : 0, grantedBy]);
+  await pool.query(
+    `INSERT INTO position_app_access (position, app_id, is_allowed, granted_by) VALUES ?
+     ON DUPLICATE KEY UPDATE is_allowed = VALUES(is_allowed), granted_by = VALUES(granted_by)`,
+    [values]
+  );
+}
+
+async function copyPositionAppAccess(fromPosition, toPosition, grantedBy) {
+  // ลบ rules เดิมของ toPosition ทั้งหมดก่อน
+  await pool.query('DELETE FROM position_app_access WHERE position = ?', [toPosition]);
+  // copy จาก fromPosition
+  const [rules] = await pool.query(
+    'SELECT app_id, is_allowed FROM position_app_access WHERE position = ?',
+    [fromPosition]
+  );
+  if (!rules.length) return;
+  const values = rules.map(r => [toPosition, r.app_id, r.is_allowed, grantedBy]);
+  await pool.query(
+    `INSERT INTO position_app_access (position, app_id, is_allowed, granted_by) VALUES ?`,
+    [values]
+  );
+}
+
+async function batchSetPositionAppAccess(position, apps, grantedBy) {
+  // apps = [{ app_id, is_allowed }]
+  if (!apps.length) return;
+  const values = apps.map(a => [position, a.app_id, a.is_allowed ? 1 : 0, grantedBy]);
+  await pool.query(
+    `INSERT INTO position_app_access (position, app_id, is_allowed, granted_by) VALUES ?
+     ON DUPLICATE KEY UPDATE is_allowed = VALUES(is_allowed), granted_by = VALUES(granted_by)`,
+    [values]
+  );
+}
+
+async function resetAllPositionAppAccess(position) {
+  await pool.query('DELETE FROM position_app_access WHERE position = ?', [position]);
+}
+
 // ─── Stats (Dashboard) ────────────────────────────────────────
 
 async function getAdminStats() {
@@ -326,17 +368,53 @@ async function addAppAccessLog({ userId, accountId, username, appId, appName, ip
   );
 }
 
-async function getAppAccessLogs({ limit = 100, offset = 0, appId = null, days = 7 } = {}) {
-  const conditions = ['created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)'];
-  const values = [days];
-  if (appId) { conditions.push('app_id = ?'); values.push(appId); }
+async function getAppAccessLogs({ limit = 500, offset = 0, appId = null, dateFrom = null, dateTo = null } = {}) {
+  const conditions = [];
+  const values = [];
+  if (dateFrom) { conditions.push('DATE(created_at) >= ?'); values.push(dateFrom); }
+  if (dateTo)   { conditions.push('DATE(created_at) <= ?'); values.push(dateTo); }
+  if (appId)    { conditions.push('app_id = ?'); values.push(appId); }
+  const where = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
   const [rows] = await pool.query(
-    `SELECT * FROM app_access_logs
-     WHERE ${conditions.join(' AND ')}
+    `SELECT id, account_id, username, app_id, app_name, ip_address, created_at
+     FROM app_access_logs
+     ${where}
      ORDER BY created_at DESC LIMIT ? OFFSET ?`,
     [...values, limit, offset]
   );
   return rows;
+}
+
+async function getAppAccessSummary({ dateFrom = null, dateTo = null, appId = null } = {}) {
+  const conditions = [];
+  const values = [];
+  if (dateFrom) { conditions.push('DATE(created_at) >= ?'); values.push(dateFrom); }
+  if (dateTo)   { conditions.push('DATE(created_at) <= ?'); values.push(dateTo); }
+  if (appId)    { conditions.push('app_id = ?'); values.push(appId); }
+  const where = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
+
+  // สรุปรายตัว app
+  const [byApp] = await pool.query(
+    `SELECT app_id, app_name, COUNT(*) AS total, COUNT(DISTINCT account_id) AS unique_users
+     FROM app_access_logs ${where}
+     GROUP BY app_id, app_name ORDER BY total DESC`,
+    values
+  );
+  // สรุปรายวัน
+  const [byDay] = await pool.query(
+    `SELECT DATE(created_at) AS day, app_id, app_name, COUNT(*) AS cnt
+     FROM app_access_logs ${where}
+     GROUP BY DATE(created_at), app_id, app_name ORDER BY day ASC`,
+    values
+  );
+  // top users
+  const [topUsers] = await pool.query(
+    `SELECT username, account_id, COUNT(*) AS total, COUNT(DISTINCT app_id) AS apps_used
+     FROM app_access_logs ${where}
+     GROUP BY username, account_id ORDER BY total DESC LIMIT 10`,
+    values
+  );
+  return { byApp, byDay, topUsers };
 }
 
 // ─── IP Allowlist ─────────────────────────────────────────────
@@ -404,10 +482,12 @@ module.exports = {
   listApps, listActiveApps, createApp, updateApp, deleteApp,
   listProviderUsers, getProviderUserApps, setUserAppAccess, resetUserAppAccess, deleteProviderUser,
   listPositions, getPositionApps, setPositionAppAccess, resetPositionAppAccess,
+  grantAllPositionApps, copyPositionAppAccess, batchSetPositionAppAccess, resetAllPositionAppAccess,
   listMenus, getAccessibleMenus, updateMenuRole,
   getAdminStats,
   getLoginLogs,
   addAuditLog, getAuditLogs,
   addAppAccessLog, getAppAccessLogs,
   listIpAllowlist, addIpAllowlist, updateIpAllowlist, removeIpAllowlist, getActiveIpAllowlist,
+  getAppAccessSummary,
 };

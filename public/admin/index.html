@@ -240,6 +240,7 @@
           <div class="card-header"><h3>📈 Login 7 วัน</h3></div>
           <table><thead><tr><th>วัน</th><th>สำเร็จ</th></tr></thead>
           <tbody id="stats-login-trend"><tr><td colspan="2" class="empty">กำลังโหลด...</td></tr></tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -332,21 +333,73 @@
 
     <!-- Tab: App Usage -->
     <div class="tab-content" id="tab-logs_app">
-      <div class="card">
-        <div class="card-header">
-          <h3>🔗 App Usage Logs</h3>
-          <div style="display:flex;gap:.5rem;align-items:center">
-            <select id="log-app-days" class="btn btn-ghost btn-sm" style="height:auto">
-              <option value="1">วันนี้</option>
-              <option value="7" selected>7 วัน</option>
-              <option value="30">30 วัน</option>
+
+      <!-- Filter Bar -->
+      <div class="card" style="margin-bottom:1rem">
+        <div style="padding:.75rem 1rem;display:flex;flex-wrap:wrap;gap:.75rem;align-items:flex-end">
+          <div style="display:flex;flex-direction:column;gap:.25rem">
+            <label style="font-size:.72rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em">App</label>
+            <select id="log-app-filter" style="background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:.375rem;padding:.4rem .65rem;color:var(--text);font-family:inherit;font-size:.82rem;min-width:160px">
+              <option value="">ทุก App</option>
             </select>
-            <button class="btn btn-primary btn-sm" id="btn-reload-app-logs">โหลด</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:.25rem">
+            <label style="font-size:.72rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em">วันที่เริ่ม</label>
+            <input type="date" id="log-app-date-from" style="background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:.375rem;padding:.4rem .65rem;color:var(--text);font-family:inherit;font-size:.82rem">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:.25rem">
+            <label style="font-size:.72rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em">วันที่สิ้นสุด</label>
+            <input type="date" id="log-app-date-to" style="background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:.375rem;padding:.4rem .65rem;color:var(--text);font-family:inherit;font-size:.82rem">
+          </div>
+          <button class="btn btn-primary btn-sm" id="btn-reload-app-logs" style="align-self:flex-end">🔍 โหลด</button>
+          <div style="margin-left:auto;display:flex;gap:.5rem;align-self:flex-end">
+            <button class="btn btn-ghost btn-sm" id="btn-export-app-excel">⬇ Excel</button>
+            <button class="btn btn-ghost btn-sm" id="btn-export-app-pdf">⬇ PDF</button>
           </div>
         </div>
+      </div>
+
+      <!-- Summary Cards -->
+      <div id="app-usage-summary" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-bottom:1rem"></div>
+
+      <!-- Charts row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+        <!-- By App -->
+        <div class="card">
+          <div class="card-header"><h3>สรุปรายการเข้าใช้ตาม App</h3></div>
+          <table>
+            <thead><tr><th>App</th><th style="text-align:right">ครั้ง</th><th style="text-align:right">ผู้ใช้ไม่ซ้ำ</th></tr></thead>
+            <tbody id="app-summary-by-app"><tr><td colspan="3" class="empty">กดโหลด</td></tr></tbody>
+          </table>
+        </div>
+        <!-- Top Users -->
+        <div class="card">
+          <div class="card-header"><h3>ผู้ใช้ที่เข้าใช้มากสุด (Top 10)</h3></div>
+          <table>
+            <thead><tr><th>ผู้ใช้</th><th style="text-align:right">ครั้ง</th><th style="text-align:right">Apps</th></tr></thead>
+            <tbody id="app-summary-top-users"><tr><td colspan="3" class="empty">กดโหลด</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Detail Table -->
+      <div class="card">
+        <div class="card-header">
+          <h3>รายละเอียดการเข้าใช้</h3>
+          <span id="app-logs-count" style="font-size:.78rem;color:var(--muted)"></span>
+        </div>
         <table>
-          <thead><tr><th>เวลา</th><th>ผู้ใช้</th><th>App</th><th>IP</th></tr></thead>
-          <tbody id="app-logs-tbody"><tr><td colspan="4" class="empty">กดโหลดเพื่อดูข้อมูล</td></tr></tbody>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>เวลา</th>
+              <th>ผู้ใช้ (Username)</th>
+              <th>Account ID</th>
+              <th>App</th>
+              <th>IP</th>
+            </tr>
+          </thead>
+          <tbody id="app-logs-tbody"><tr><td colspan="6" class="empty">กดโหลดเพื่อดูข้อมูล</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -590,6 +643,8 @@ async function init() {
 // ─── Static button listeners (no onclick attributes) ───────────
 document.getElementById('btn-reload-login-logs').addEventListener('click', loadLoginLogs);
 document.getElementById('btn-reload-app-logs').addEventListener('click', loadAppLogs);
+document.getElementById('btn-export-app-excel').addEventListener('click', exportAppLogsExcel);
+document.getElementById('btn-export-app-pdf').addEventListener('click', exportAppLogsPdf);
 document.getElementById('btn-reload-audit-logs').addEventListener('click', loadAuditLogs);
 document.getElementById('btn-add-ip').addEventListener('click', () => {
   document.getElementById('ip-input').value = '';
@@ -639,6 +694,9 @@ function showTab(key) {
   if (key === '2fa_settings')  load2faStatus();
   if (key === 'dashboard')     loadStats();
   if (key === 'ip_allowlist')  loadIpList();
+  if (key === 'logs_login')    loadLoginLogs();
+  if (key === 'logs_app')      loadAppLogs();
+  if (key === 'logs_audit')    loadAuditLogs();
 }
 
 function showSubTab(name) {
@@ -840,10 +898,13 @@ async function resetUserApp(userId, appId) {
 }
 
 // ─── Position Permissions ───────────────────────────────────────
+let _allPositions = []; // cache ไว้ใช้ใน copy-from dropdown
+
 async function loadPositions() {
   const container = document.getElementById('positions-container');
   try {
     const { data: positions } = await api('/positions');
+    _allPositions = positions;
     if (!positions.length) {
       container.innerHTML = '<div style="color:var(--muted);font-size:.85rem">ยังไม่มีข้อมูลตำแหน่งในระบบ (user ต้อง login ก่อน)</div>';
       return;
@@ -851,10 +912,12 @@ async function loadPositions() {
     container.innerHTML = positions.map(p => `
       <div class="card" style="margin:0">
         <div class="card-header" style="cursor:pointer" data-action="expand-position" data-pos="${encodeURIComponent(p.position)}">
-          <h3 style="font-size:.9rem">👥 ${p.position} <span style="color:var(--muted);font-weight:400;font-size:.78rem">(${p.user_count} คน)</span></h3>
-          <span style="color:var(--muted);font-size:.8rem">คลิกเพื่อจัดการสิทธิ์</span>
+          <h3 style="font-size:.9rem">👥 ${p.position}
+            <span style="color:var(--muted);font-weight:400;font-size:.78rem">(${p.user_count} คน)</span>
+          </h3>
+          <span style="color:var(--muted);font-size:.8rem">▼ คลิกเพื่อจัดการสิทธิ์</span>
         </div>
-        <div id="pos-apps-${encodeURIComponent(p.position)}" class="hidden" style="padding:.75rem;display:flex;flex-direction:column;gap:.4rem"></div>
+        <div id="pos-apps-${encodeURIComponent(p.position)}" class="hidden"></div>
       </div>`).join('');
   } catch (e) { container.innerHTML = `<div style="color:var(--danger)">${e.message}</div>`; }
 }
@@ -867,43 +930,119 @@ async function expandPosition(posEncoded) {
     return;
   }
   container.classList.remove('hidden');
-  container.innerHTML = '<div style="color:var(--muted);font-size:.8rem">กำลังโหลด...</div>';
+  container.innerHTML = '<div style="color:var(--muted);font-size:.8rem;padding:.75rem">กำลังโหลด...</div>';
   try {
     const { data } = await api('/positions/' + encodeURIComponent(pos) + '/apps');
-    container.innerHTML = data.map(a => {
+
+    // ─── Batch toolbar ───────────────────────────────────────────
+    const otherPositions = _allPositions.filter(p => p.position !== pos);
+    const copyOptions = otherPositions.map(p =>
+      `<option value="${encodeURIComponent(p.position)}">${p.position}</option>`).join('');
+
+    const toolbar = `
+      <div style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;padding:.75rem 1rem;border-bottom:1px solid var(--border);background:rgba(0,0,0,.1)">
+        <span style="font-size:.75rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em">Batch:</span>
+
+        <button class="btn btn-sm btn-success" data-action="pos-grant-all" data-pos="${posEncoded}" title="อนุญาตทุก App">
+          ✓ อนุญาตทั้งหมด
+        </button>
+        <button class="btn btn-sm btn-danger" data-action="pos-revoke-all" data-pos="${posEncoded}" title="ปิดกั้นทุก App">
+          ✗ ปิดกั้นทั้งหมด
+        </button>
+        <button class="btn btn-sm" style="background:rgba(100,116,139,.2);color:#94a3b8;border:1px solid var(--border)"
+                data-action="pos-reset-all" data-pos="${posEncoded}" title="คืนค่า default ทั้งหมด">
+          ↩ คืนค่า default
+        </button>
+
+        <div style="display:flex;gap:.35rem;align-items:center;margin-left:auto">
+          <span style="font-size:.75rem;color:var(--muted)">Copy จาก:</span>
+          <select id="copy-from-select-${posEncoded}" style="background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:.375rem;padding:.25rem .5rem;color:var(--text);font-family:inherit;font-size:.75rem" ${!otherPositions.length ? 'disabled' : ''}>
+            <option value="">— เลือกตำแหน่ง —</option>
+            ${copyOptions}
+          </select>
+          <button class="btn btn-sm btn-primary" data-action="pos-copy-from" data-pos="${posEncoded}" ${!otherPositions.length ? 'disabled' : ''}>
+            Copy
+          </button>
+        </div>
+      </div>`;
+
+    // ─── App rows with checkboxes ─────────────────────────────────
+    const rows = data.map(a => {
       const allowed = !!a.is_allowed;
       const hasRule = a.id !== null;
       const srcLabel = hasRule
-        ? `<span style="background:rgba(217,119,6,.15);color:#fbbf24;border-radius:.25rem;padding:.1rem .35rem;font-size:.68rem">กำหนดไว้</span>`
-        : `<span style="background:rgba(100,116,139,.15);color:#94a3b8;border-radius:.25rem;padding:.1rem .35rem;font-size:.68rem">ค่าเริ่มต้น (อนุญาต)</span>`;
+        ? `<span style="background:rgba(217,119,6,.15);color:#fbbf24;border-radius:.25rem;padding:.1rem .35rem;font-size:.66rem">กำหนดไว้</span>`
+        : `<span style="background:rgba(100,116,139,.15);color:#94a3b8;border-radius:.25rem;padding:.1rem .35rem;font-size:.66rem">ค่าเริ่มต้น</span>`;
       const resetBtn = hasRule
-        ? `<button class="btn btn-sm" style="background:rgba(100,116,139,.2);color:#94a3b8;padding:.25rem .5rem;font-size:.72rem"
-               data-action="reset-pos-app" data-pos="${posEncoded}" data-app="${a.app_id}" title="รีเซ็ตเป็นค่าเริ่มต้น">↩</button>`
+        ? `<button class="btn btn-sm" style="background:rgba(100,116,139,.2);color:#94a3b8;padding:.2rem .45rem;font-size:.7rem"
+               data-action="reset-pos-app" data-pos="${posEncoded}" data-app="${a.app_id}" title="รีเซ็ตเป็น default">↩</button>`
         : '';
       return `
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.4rem .6rem;background:rgba(0,0,0,.15);border-radius:.375rem;">
+      <div style="display:flex;align-items:center;gap:.5rem;padding:.45rem .75rem;border-top:1px solid rgba(255,255,255,.04)">
+        <input type="checkbox" class="pos-app-check" data-pos="${posEncoded}" data-app="${a.app_id}"
+               style="width:1rem;height:1rem;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
         <span style="flex:1;font-size:.85rem">${a.icon} ${a.name} ${srcLabel}</span>
         <div style="display:flex;gap:.3rem;flex-shrink:0">
           <button class="btn btn-sm ${allowed ? 'btn-success' : 'btn-danger'}"
-                  data-action="toggle-pos-app" data-pos="${posEncoded}" data-app="${a.app_id}" data-allowed="${allowed ? 'true' : 'false'}">
+                  data-action="toggle-pos-app" data-pos="${posEncoded}" data-app="${a.app_id}" data-allowed="${allowed}">
             ${allowed ? '✓ อนุญาต' : '✗ ปิดกั้น'}
           </button>
           ${resetBtn}
         </div>
       </div>`;
     }).join('');
-  } catch (e) { container.innerHTML = `<div style="color:var(--danger)">${e.message}</div>`; }
+
+    // ─── Batch apply bar (สำหรับ checkbox selection) ─────────────
+    const batchBar = `
+      <div style="display:flex;gap:.5rem;align-items:center;padding:.6rem 1rem;border-top:1px solid var(--border);background:rgba(0,0,0,.1)">
+        <span style="font-size:.75rem;color:var(--muted)">
+          <span id="pos-checked-count-${posEncoded}">0</span> รายการที่เลือก:
+        </span>
+        <button class="btn btn-sm btn-success" data-action="batch-allow-checked" data-pos="${posEncoded}">✓ อนุญาต</button>
+        <button class="btn btn-sm btn-danger"  data-action="batch-block-checked"  data-pos="${posEncoded}">✗ ปิดกั้น</button>
+        <button class="btn btn-sm" style="background:rgba(100,116,139,.2);color:#94a3b8;border:1px solid var(--border)"
+                data-action="batch-reset-checked" data-pos="${posEncoded}">↩ reset</button>
+        <label style="margin-left:auto;font-size:.75rem;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:.3rem">
+          <input type="checkbox" id="pos-check-all-${posEncoded}" style="accent-color:var(--accent)">
+          เลือกทั้งหมด
+        </label>
+      </div>`;
+
+    container.innerHTML = toolbar + `<div>${rows}</div>` + batchBar;
+
+    // "เลือกทั้งหมด" checkbox
+    document.getElementById('pos-check-all-' + posEncoded)?.addEventListener('change', (e) => {
+      container.querySelectorAll('.pos-app-check').forEach(cb => { cb.checked = e.target.checked; });
+      updateCheckedCount(posEncoded);
+    });
+    // update count เมื่อ toggle แต่ละ checkbox
+    container.querySelectorAll('.pos-app-check').forEach(cb => {
+      cb.addEventListener('change', () => updateCheckedCount(posEncoded));
+    });
+
+  } catch (e) { container.innerHTML = `<div style="color:var(--danger);padding:.75rem">${e.message}</div>`; }
+}
+
+function updateCheckedCount(posEncoded) {
+  const container = document.getElementById('pos-apps-' + posEncoded);
+  const count = container?.querySelectorAll('.pos-app-check:checked').length ?? 0;
+  const el = document.getElementById('pos-checked-count-' + posEncoded);
+  if (el) el.textContent = count;
+}
+
+async function reloadPosition(posEncoded) {
+  const container = document.getElementById('pos-apps-' + posEncoded);
+  container.classList.add('hidden');
+  await expandPosition(posEncoded);
 }
 
 async function togglePosApp(posEncoded, appId, current) {
   try {
     const pos = decodeURIComponent(posEncoded);
     await api(`/positions/${encodeURIComponent(pos)}/apps/${appId}`, {
-      method: 'PUT', body: JSON.stringify({ is_allowed: !current })
+      method: 'PUT', body: JSON.stringify({ is_allowed: current !== 'true' })
     });
-    const container = document.getElementById('pos-apps-' + posEncoded);
-    container.classList.add('hidden');
-    expandPosition(posEncoded);
+    await reloadPosition(posEncoded);
   } catch (e) { showError(e.message); }
 }
 
@@ -911,9 +1050,68 @@ async function resetPosApp(posEncoded, appId) {
   try {
     const pos = decodeURIComponent(posEncoded);
     await api(`/positions/${encodeURIComponent(pos)}/apps/${appId}`, { method: 'DELETE' });
-    const container = document.getElementById('pos-apps-' + posEncoded);
-    container.classList.add('hidden');
-    expandPosition(posEncoded);
+    await reloadPosition(posEncoded);
+  } catch (e) { showError(e.message); }
+}
+
+async function posGrantAll(posEncoded, isAllowed) {
+  const pos = decodeURIComponent(posEncoded);
+  const word = isAllowed ? 'อนุญาต' : 'ปิดกั้น';
+  if (!confirm(`${word}ทุก App สำหรับตำแหน่ง "${pos}"?`)) return;
+  try {
+    await api(`/positions/${encodeURIComponent(pos)}/apps/grant-all`, {
+      method: 'POST', body: JSON.stringify({ is_allowed: isAllowed })
+    });
+    showSuccess(`${word}ทุก App เรียบร้อยแล้ว`);
+    await reloadPosition(posEncoded);
+  } catch (e) { showError(e.message); }
+}
+
+async function posResetAll(posEncoded) {
+  const pos = decodeURIComponent(posEncoded);
+  if (!confirm(`คืนค่า default ทั้งหมดสำหรับตำแหน่ง "${pos}"?`)) return;
+  try {
+    await api(`/positions/${encodeURIComponent(pos)}/apps/reset-all`, { method: 'POST' });
+    showSuccess('คืนค่า default เรียบร้อยแล้ว');
+    await reloadPosition(posEncoded);
+  } catch (e) { showError(e.message); }
+}
+
+async function posCopyFrom(posEncoded) {
+  const pos = decodeURIComponent(posEncoded);
+  const sel = document.getElementById('copy-from-select-' + posEncoded);
+  const fromEncoded = sel?.value;
+  if (!fromEncoded) { showError('กรุณาเลือกตำแหน่งที่จะ copy สิทธิ์มาจาก'); return; }
+  const fromPos = decodeURIComponent(fromEncoded);
+  if (!confirm(`Copy สิทธิ์จาก "${fromPos}" ไปยัง "${pos}"?\nสิทธิ์เดิมของ "${pos}" จะถูกแทนที่ทั้งหมด`)) return;
+  try {
+    await api(`/positions/${encodeURIComponent(pos)}/apps/copy-from`, {
+      method: 'POST', body: JSON.stringify({ from_position: fromPos })
+    });
+    showSuccess(`Copy สิทธิ์จาก "${fromPos}" เรียบร้อยแล้ว`);
+    await reloadPosition(posEncoded);
+  } catch (e) { showError(e.message); }
+}
+
+async function batchApplyChecked(posEncoded, isAllowed) {
+  const container = document.getElementById('pos-apps-' + posEncoded);
+  const checked = [...container.querySelectorAll('.pos-app-check:checked')];
+  if (!checked.length) { showError('ยังไม่ได้เลือก App'); return; }
+  const pos = decodeURIComponent(posEncoded);
+  try {
+    if (isAllowed === null) {
+      // reset — ลบทีละตัว (batch delete)
+      for (const cb of checked) {
+        await api(`/positions/${encodeURIComponent(pos)}/apps/${cb.dataset.app}`, { method: 'DELETE' });
+      }
+    } else {
+      const apps = checked.map(cb => ({ app_id: cb.dataset.app, is_allowed: isAllowed }));
+      await api(`/positions/${encodeURIComponent(pos)}/apps/batch`, {
+        method: 'POST', body: JSON.stringify({ apps })
+      });
+    }
+    showSuccess('บันทึกเรียบร้อยแล้ว');
+    await reloadPosition(posEncoded);
   } catch (e) { showError(e.message); }
 }
 
@@ -999,19 +1197,174 @@ async function loadLoginLogs() {
 }
 
 // ─── App Usage Logs ────────────────────────────────────────────
+let _appLogsData = []; // cache สำหรับ export
+
+function appLogsParams() {
+  const appId    = document.getElementById('log-app-filter').value;
+  const dateFrom = document.getElementById('log-app-date-from').value;
+  const dateTo   = document.getElementById('log-app-date-to').value;
+  const p = new URLSearchParams();
+  if (appId)    p.set('app_id', appId);
+  if (dateFrom) p.set('date_from', dateFrom);
+  if (dateTo)   p.set('date_to', dateTo);
+  return p.toString();
+}
+
 async function loadAppLogs() {
-  const tbody = document.getElementById('app-logs-tbody');
-  const days  = document.getElementById('log-app-days').value;
-  tbody.innerHTML = '<tr><td colspan="4" class="empty">กำลังโหลด...</td></tr>';
+  // set default date = today ถ้ายังว่าง
+  const today = new Date().toISOString().slice(0, 10);
+  if (!document.getElementById('log-app-date-from').value) document.getElementById('log-app-date-from').value = today;
+  if (!document.getElementById('log-app-date-to').value)   document.getElementById('log-app-date-to').value   = today;
+
+  // โหลด app list สำหรับ dropdown (ครั้งแรก)
+  if (document.getElementById('log-app-filter').options.length <= 1) {
+    try {
+      const { data: apps } = await api('/logs/app/apps');
+      const sel = document.getElementById('log-app-filter');
+      apps.forEach(a => {
+        const o = document.createElement('option');
+        o.value = a.app_id; o.textContent = `${a.app_name || a.app_id}`;
+        sel.appendChild(o);
+      });
+    } catch { /* ignore */ }
+  }
+
+  const qs = appLogsParams();
+
+  // โหลด summary
   try {
-    const { data } = await api('/logs/app?days=' + days + '&limit=200');
-    tbody.innerHTML = data.length ? data.map(r => `<tr>
+    const { data: s } = await api('/logs/app/summary?' + qs);
+
+    // summary cards
+    const totalAccess = s.byApp.reduce((n, a) => n + a.total, 0);
+    const totalUsers  = new Set(s.topUsers.map(u => u.account_id)).size;
+    document.getElementById('app-usage-summary').innerHTML = `
+      <div class="card" style="padding:1rem;text-align:center">
+        <div style="font-size:1.8rem;font-weight:700">${totalAccess}</div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:.25rem">ครั้งที่เข้าใช้</div>
+      </div>
+      <div class="card" style="padding:1rem;text-align:center">
+        <div style="font-size:1.8rem;font-weight:700;color:var(--success)">${totalUsers}</div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:.25rem">ผู้ใช้ไม่ซ้ำ</div>
+      </div>
+      <div class="card" style="padding:1rem;text-align:center">
+        <div style="font-size:1.8rem;font-weight:700;color:var(--accent)">${s.byApp.length}</div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:.25rem">Apps ที่ถูกเปิด</div>
+      </div>`;
+
+    // by app table
+    document.getElementById('app-summary-by-app').innerHTML = s.byApp.length
+      ? s.byApp.map(a => `<tr>
+          <td><span class="pill pill-amber" style="font-size:.7rem">${a.app_id}</span> <span style="font-size:.8rem">${a.app_name||''}</span></td>
+          <td style="text-align:right;font-weight:600">${a.total}</td>
+          <td style="text-align:right;color:var(--muted)">${a.unique_users}</td>
+        </tr>`).join('')
+      : '<tr><td colspan="3" class="empty">ไม่มีข้อมูล</td></tr>';
+
+    // top users table
+    document.getElementById('app-summary-top-users').innerHTML = s.topUsers.length
+      ? s.topUsers.map((u, i) => `<tr>
+          <td style="font-size:.82rem">${i+1}. ${u.username || u.account_id || '—'}</td>
+          <td style="text-align:right;font-weight:600">${u.total}</td>
+          <td style="text-align:right;color:var(--muted)">${u.apps_used}</td>
+        </tr>`).join('')
+      : '<tr><td colspan="3" class="empty">ไม่มีข้อมูล</td></tr>';
+  } catch (e) { document.getElementById('app-usage-summary').innerHTML = ''; }
+
+  // โหลด detail rows
+  const tbody = document.getElementById('app-logs-tbody');
+  tbody.innerHTML = '<tr><td colspan="6" class="empty">กำลังโหลด...</td></tr>';
+  try {
+    const { data } = await api('/logs/app?' + qs);
+    _appLogsData = data;
+    document.getElementById('app-logs-count').textContent = `${data.length} รายการ`;
+    tbody.innerHTML = data.length ? data.map((r, i) => `<tr>
+      <td style="color:var(--muted);font-size:.72rem">${i+1}</td>
       <td style="font-size:.73rem;white-space:nowrap">${new Date(r.created_at).toLocaleString('th-TH')}</td>
-      <td style="font-size:.8rem">${r.username || r.account_id || '—'}</td>
-      <td><span class="pill pill-amber" style="font-size:.68rem">${r.app_id}</span> <span style="font-size:.78rem;color:var(--muted)">${r.app_name||''}</span></td>
-      <td style="font-size:.73rem;color:var(--muted)">${r.ip_address || '—'}</td>
-    </tr>`).join('') : '<tr><td colspan="4" class="empty">ไม่มีข้อมูลในช่วงนี้</td></tr>';
-  } catch (e) { tbody.innerHTML = `<tr><td colspan="4" class="empty" style="color:var(--danger)">${e.message}</td></tr>`; }
+      <td style="font-size:.82rem">${r.username || '—'}</td>
+      <td style="font-size:.72rem;color:var(--muted)">${r.account_id || '—'}</td>
+      <td><span class="pill pill-amber" style="font-size:.68rem">${r.app_id}</span> <span style="font-size:.75rem;color:var(--muted)">${r.app_name||''}</span></td>
+      <td style="font-size:.73rem;color:var(--muted)">${r.ip_address||'—'}</td>
+    </tr>`).join('') : '<tr><td colspan="6" class="empty">ไม่มีข้อมูลในช่วงนี้</td></tr>';
+  } catch (e) {
+    _appLogsData = [];
+    tbody.innerHTML = `<tr><td colspan="6" class="empty" style="color:var(--danger)">${e.message}</td></tr>`;
+  }
+}
+
+// ─── Export App Logs ───────────────────────────────────────────
+function exportAppLogsExcel() {
+  if (!_appLogsData.length) { showError('ไม่มีข้อมูลสำหรับ export'); return; }
+  const headers = ['#', 'เวลา', 'Username', 'Account ID', 'App ID', 'App Name', 'IP'];
+  const rows = _appLogsData.map((r, i) => [
+    i + 1,
+    new Date(r.created_at).toLocaleString('th-TH'),
+    r.username || '',
+    r.account_id || '',
+    r.app_id,
+    r.app_name || '',
+    r.ip_address || '',
+  ]);
+
+  // สร้าง CSV (Excel เปิดได้)
+  const csvContent = [headers, ...rows]
+    .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    .join('\n');
+  const bom = '\uFEFF'; // BOM สำหรับ Thai charset
+  const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const from = document.getElementById('log-app-date-from').value;
+  const to   = document.getElementById('log-app-date-to').value;
+  a.href     = url;
+  a.download = `app-usage_${from}_${to}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportAppLogsPdf() {
+  if (!_appLogsData.length) { showError('ไม่มีข้อมูลสำหรับ export'); return; }
+  const from = document.getElementById('log-app-date-from').value;
+  const to   = document.getElementById('log-app-date-to').value;
+  const appFilter = document.getElementById('log-app-filter');
+  const appLabel  = appFilter.options[appFilter.selectedIndex]?.text || 'ทุก App';
+
+  const rows = _appLogsData.map((r, i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td>${new Date(r.created_at).toLocaleString('th-TH')}</td>
+      <td>${r.username || '—'}</td>
+      <td>${r.account_id || '—'}</td>
+      <td>${r.app_id}</td>
+      <td>${r.app_name || ''}</td>
+      <td>${r.ip_address || '—'}</td>
+    </tr>`).join('');
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>App Usage Report</title>
+    <style>
+      body { font-family: 'Sarabun', sans-serif; font-size: 11px; color: #1e293b; }
+      h2 { font-size: 14px; margin-bottom: 4px; }
+      p  { color: #64748b; margin: 0 0 12px; font-size: 10px; }
+      table { width: 100%; border-collapse: collapse; }
+      th { background: #1e293b; color: #fff; padding: 6px 8px; text-align: left; font-size: 10px; }
+      td { padding: 5px 8px; border-bottom: 1px solid #e2e8f0; }
+      tr:nth-child(even) td { background: #f8fafc; }
+    </style>
+  </head><body>
+    <h2>📊 App Usage Report</h2>
+    <p>ช่วงเวลา: ${from} ถึง ${to} | App: ${appLabel} | รวม ${_appLogsData.length} รายการ</p>
+    <table>
+      <thead><tr><th>#</th><th>เวลา</th><th>Username</th><th>Account ID</th><th>App ID</th><th>App Name</th><th>IP</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </body></html>`;
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(() => { win.print(); }, 500);
 }
 
 // ─── Admin Audit Logs ──────────────────────────────────────────
@@ -1095,12 +1448,15 @@ document.addEventListener('click', async (e) => {
     resetUserApp(parseInt(btn.dataset.user), btn.dataset.app);
   }
   if (action === 'expand-position') expandPosition(btn.dataset.pos);
-  if (action === 'toggle-pos-app') {
-    togglePosApp(btn.dataset.pos, btn.dataset.app, btn.dataset.allowed === 'true');
-  }
-  if (action === 'reset-pos-app') {
-    resetPosApp(btn.dataset.pos, btn.dataset.app);
-  }
+  if (action === 'toggle-pos-app')    togglePosApp(btn.dataset.pos, btn.dataset.app, btn.dataset.allowed);
+  if (action === 'reset-pos-app')     resetPosApp(btn.dataset.pos, btn.dataset.app);
+  if (action === 'pos-grant-all')     posGrantAll(btn.dataset.pos, true);
+  if (action === 'pos-revoke-all')    posGrantAll(btn.dataset.pos, false);
+  if (action === 'pos-reset-all')     posResetAll(btn.dataset.pos);
+  if (action === 'pos-copy-from')     posCopyFrom(btn.dataset.pos);
+  if (action === 'batch-allow-checked')  batchApplyChecked(btn.dataset.pos, true);
+  if (action === 'batch-block-checked')  batchApplyChecked(btn.dataset.pos, false);
+  if (action === 'batch-reset-checked')  batchApplyChecked(btn.dataset.pos, null);
   if (action === 'toggle-ip') toggleIp(id, btn.dataset.active === 'true');
   if (action === 'delete-ip') deleteIp(id);
 });

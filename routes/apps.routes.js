@@ -19,8 +19,9 @@ router.get('/', requireAuth, async (req, res) => {
   const allApps        = await listActiveApps();
   const userExpertises = (req.user.organizations || []).map(o => o.expertise).filter(Boolean);
   const userHcodes     = (req.user.organizations || []).map(o => o.hcode).filter(Boolean);
+  const userPositions  = (req.user.organizations || []).map(o => o.position).filter(Boolean);
 
-  // ดึง override ของ user นี้
+  // ดึง individual override ของ user นี้
   const [accessRows] = await pool.query(
     `SELECT uaa.app_id, uaa.is_allowed
      FROM user_app_access uaa
@@ -30,11 +31,30 @@ router.get('/', requireAuth, async (req, res) => {
   );
   const accessMap = Object.fromEntries(accessRows.map(r => [r.app_id, r.is_allowed]));
 
+  // ดึง position rules ของ user (ทุก position ที่ user มี)
+  // positionMap[app_id] = true ถ้า any position อนุญาต, false ถ้าทุก position ที่มี rule ปิดกั้น
+  const positionMap = {};
+  if (userPositions.length) {
+    const placeholders = userPositions.map(() => '?').join(',');
+    const [posRows] = await pool.query(
+      `SELECT app_id, MAX(is_allowed) AS is_allowed
+       FROM position_app_access
+       WHERE position IN (${placeholders})
+       GROUP BY app_id`,
+      userPositions
+    );
+    posRows.forEach(r => { positionMap[r.app_id] = r.is_allowed === 1; });
+  }
+
   const accessibleApps = allApps
     .filter(app => {
-      // individual override มีสิทธิ์สูงสุด
+      // 1. Individual override — สิทธิ์สูงสุด
       if (app.app_id in accessMap) return accessMap[app.app_id] === 1;
-      // hcode_whitelist: ถ้ากำหนดไว้ ต้อง hcode ตรง
+
+      // 2. Position rule — ถ้ามี rule สำหรับ app นี้
+      if (app.app_id in positionMap) return positionMap[app.app_id];
+
+      // 3. hcode_whitelist
       if (app.hcode_whitelist) {
         try {
           const allowed = JSON.parse(app.hcode_whitelist);
@@ -43,7 +63,8 @@ router.get('/', requireAuth, async (req, res) => {
           }
         } catch { /* ignore parse error */ }
       }
-      // required_expertise
+
+      // 4. required_expertise
       if (!app.required_expertise) return true;
       return userExpertises.includes(app.required_expertise);
     })
