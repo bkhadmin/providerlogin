@@ -14,7 +14,7 @@ services:
       - db_data:/var/lib/mysql
       - ./docker/init:/docker-entrypoint-initdb.d:ro
     ports:
-      - "3306:3306"          # เปิดให้ connect จากเครื่อง host ได้ (dev)
+      - "3307:3306"          # ใช้ 3307 เพราะ 3306 ถูก XAMPP MySQL ใช้อยู่
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-rootpassword}"]
       interval: 10s
@@ -36,7 +36,6 @@ services:
     env_file:
       - .env
     environment:
-      NODE_ENV: production
       DB_HOST: db
       DB_PORT: 3306
       DB_USER: ${DB_USER:-pluser}
