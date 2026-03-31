@@ -1,0 +1,56 @@
+services:
+
+  # ─── MySQL Database ──────────────────────────────────────────
+  db:
+    image: mysql:8.0
+    container_name: providerlogin-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: providerlogin
+      MYSQL_USER: ${DB_USER:-pluser}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-plpassword}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./docker/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "3306:3306"          # เปิดให้ connect จากเครื่อง host ได้ (dev)
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-rootpassword}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-net
+
+  # ─── Node.js App ─────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: providerlogin-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: ${DB_USER:-pluser}
+      DB_PASSWORD: ${DB_PASSWORD:-plpassword}
+      DB_NAME: providerlogin
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    networks:
+      - app-net
+
+volumes:
+  db_data:
+    driver: local
+
+networks:
+  app-net:
+    driver: bridge
