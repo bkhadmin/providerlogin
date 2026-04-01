@@ -19,13 +19,17 @@ const helmetMiddleware = helmet({
       connectSrc:    ["'self'"],
       frameSrc:      ["'none'"],
       objectSrc:     ["'none'"],
+      // Disable upgrade-insecure-requests when not on HTTPS (prevents browser
+      // from upgrading HTTP fetch → HTTPS which breaks plain-HTTP deployments)
+      upgradeInsecureRequests: config.isProd ? [] : null,
     },
   },
-  hsts: {
+  // Only send HSTS when actually serving over HTTPS
+  hsts: config.isProd ? {
     maxAge: 31536000,          // 1 year
     includeSubDomains: true,
     preload: true,
-  },
+  } : false,
   frameguard: { action: 'deny' },
   noSniff: true,
   xssFilter: true,
