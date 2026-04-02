@@ -27,8 +27,11 @@ async function initiateLogin(req, res) {
   const codeVerifier = generateCodeVerifier();
   const codeChallenge = generateCodeChallenge(codeVerifier);
 
+  // เก็บ returnTo ถ้ามี (เช่น /api/apps/app-bkita/launch)
+  const returnTo = req.query.returnTo || null;
+
   // Store state + verifier indexed by state value (10-minute TTL)
-  stateStore.set(state, { codeVerifier, createdAt: Date.now() });
+  stateStore.set(state, { codeVerifier, createdAt: Date.now(), returnTo });
 
   const params = new URLSearchParams({
     client_id:     config.healthId.clientId || 'YOUR_HEALTH_ID_CLIENT_ID',
@@ -72,6 +75,7 @@ async function handleCallback(req, res) {
     auditLog('LOGIN_INVALID_STATE', req, { state });
     return sendError('invalid_state');
   }
+  const returnTo = storedState.returnTo || null;
   stateStore.delete(state); // Consume state immediately
 
   // Validate code
@@ -160,10 +164,11 @@ async function handleCallback(req, res) {
     });
 
     // POST: ส่ง JSON กลับให้ frontend redirect เอง / GET: redirect โดยตรง
+    const postLoginRedirect = returnTo || '/dashboard.html';
     if (isPost) {
-      return res.json({ success: true, redirect: '/dashboard.html' });
+      return res.json({ success: true, redirect: postLoginRedirect });
     }
-    res.redirect('/dashboard.html');
+    res.redirect(postLoginRedirect);
   } catch (err) {
     // ── ดู error จริงๆ ใน terminal ──────────────────────────────────────────
     // ── DEBUG: แสดง error ตรงใน terminal ────────────────────────────────────
