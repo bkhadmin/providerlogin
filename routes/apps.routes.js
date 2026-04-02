@@ -130,4 +130,62 @@ router.get('/:appId/token', requireAuth, async (req, res) => {
   res.json({ success: true, token: appToken, expiresIn: 900 });
 });
 
+/**
+ * GET /api/apps/:appId/launch
+ * ออก SSO token แล้ว redirect ไปยัง app URL พร้อม ?sso_token=...
+ * ใช้สำหรับปุ่ม login จากภายนอก (ไม่ต้องผ่าน dashboard JS)
+ */
+router.get('/:appId/launch', requireAuth, async (req, res) => {
+  const { appId } = req.params;
+  const jwt    = require('jsonwebtoken');
+  const config = require('../config/config');
+
+  const [appRows] = await pool.query(
+    'SELECT app_id, name, url FROM applications WHERE app_id = ? AND is_active = 1',
+    [appId]
+  );
+  if (!appRows.length) {
+    return res.status(404).json({ success: false, message: 'App not found or inactive.' });
+  }
+  const appInfo = appRows[0];
+
+  const u   = req.user;
+  const org = (u.organizations && u.organizations[0]) || {};
+  const _titles = ['นางสาว', 'นาง', 'นาย', 'เด็กชาย', 'เด็กหญิง', 'ด.ช.', 'ด.ญ.'];
+  let _fn = (u.firstnameTh ?? '').trim();
+  for (const _t of _titles) { if (_fn.startsWith(_t)) { _fn = _fn.slice(_t.length).trim(); break; } }
+  const nameTh = [(u.titleTh ?? '').trim(), _fn, (u.lastnameTh ?? '').trim()].filter(Boolean).join(' ');
+
+  const appToken = jwt.sign(
+    {
+      sub:        u.accountId,
+      username:   u.username,
+      providerId: u.providerId,
+      nameTh,
+      hcode:      org.hcode    ?? '',
+      hnameTh:    org.hnameTh  ?? '',
+      position:   org.position ?? '',
+      appId,
+      scope:      'app-access',
+    },
+    config.jwt.secret,
+    { expiresIn: '15m', issuer: 'providerlogin', audience: 'web-apps' }
+  );
+
+  addAppAccessLog({
+    userId:    u.dbUserId ?? null,
+    accountId: u.accountId,
+    username:  u.username,
+    appId,
+    appName:   appInfo.name,
+    ip:        req.ip,
+    userAgent: req.headers['user-agent'],
+  }).catch(() => {});
+
+  // redirect ไปยัง app URL พร้อม token
+  const appUrl = (appInfo.url || '').replace(/\/$/, '');
+  const sep    = appUrl.includes('?') ? '&' : '?';
+  return res.redirect(`${appUrl}${sep}sso_token=${appToken}`);
+});
+
 module.exports = router;
