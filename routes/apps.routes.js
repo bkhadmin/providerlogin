@@ -94,7 +94,11 @@ router.get('/:appId/token', requireAuth, async (req, res) => {
 
   const u      = req.user;
   const org    = (u.organizations && u.organizations[0]) || {};
-  const nameTh = `${u.titleTh ?? ''}${u.firstnameTh ?? ''} ${u.lastnameTh ?? ''}`.trim();
+  // Strip duplicate title prefix from firstname (e.g. firstnameTh="นายวีรวัฒน์" when titleTh="นาย")
+  const _titles = ['นางสาว', 'นาง', 'นาย', 'เด็กชาย', 'เด็กหญิง', 'ด.ช.', 'ด.ญ.'];
+  let _fn = (u.firstnameTh ?? '').trim();
+  for (const _t of _titles) { if (_fn.startsWith(_t)) { _fn = _fn.slice(_t.length).trim(); break; } }
+  const nameTh = [(u.titleTh ?? '').trim(), _fn, (u.lastnameTh ?? '').trim()].filter(Boolean).join(' ');
 
   const appToken = jwt.sign(
     {
