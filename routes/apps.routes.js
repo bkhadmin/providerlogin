@@ -192,10 +192,19 @@ router.get('/:appId/launch', requireAuth, async (req, res) => {
     userAgent: req.headers['user-agent'],
   }).catch(() => {});
 
-  // redirect ไปยัง app URL พร้อม token
+  // ส่ง token ผ่าน auto-submit POST form เพื่อไม่ให้ token ปรากฏใน URL
+  // (ป้องกัน token รั่วผ่าน nginx access log / browser history / Referer header)
   const appUrl = (appInfo.url || '').replace(/\/$/, '');
-  const sep    = appUrl.includes('?') ? '&' : '?';
-  return res.redirect(`${appUrl}${sep}sso_token=${appToken}`);
+  const escapedUrl   = appUrl.replace(/"/g, '&quot;');
+  const escapedToken = appToken.replace(/"/g, '&quot;');
+  return res.send(`<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Redirecting...</title></head>
+<body>
+<form id="f" method="POST" action="${escapedUrl}">
+  <input type="hidden" name="sso_token" value="${escapedToken}">
+</form>
+<script>document.getElementById('f').submit();</script>
+</body></html>`);
 });
 
 module.exports = router;

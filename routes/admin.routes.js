@@ -6,6 +6,7 @@ const {
   signAdminToken, signPendingToken, verifyPendingToken,
   ADMIN_COOKIE, PENDING_COOKIE,
 } = require('../middleware/adminAuth');
+const { authLimiter } = require('../middleware/security');
 const speakeasy = require('speakeasy');
 const QRCode    = require('qrcode');
 const m = require('../database/adminModel');
@@ -16,7 +17,7 @@ const isProd = process.env.NODE_ENV === 'production';
 
 // ─── Auth ─────────────────────────────────────────────────────
 
-router.post('/auth/login', async (req, res) => {
+router.post('/auth/login', authLimiter, async (req, res) => {
   try {
     const { username, password } = req.body ?? {};
     if (!username || !password) {
@@ -55,7 +56,7 @@ router.post('/auth/login', async (req, res) => {
 });
 
 // ── ยืนยัน OTP หลัง login ──────────────────────────────────────
-router.post('/auth/2fa/verify', async (req, res) => {
+router.post('/auth/2fa/verify', authLimiter, async (req, res) => {
   try {
     const pendingToken = req.cookies?.[PENDING_COOKIE];
     if (!pendingToken) {

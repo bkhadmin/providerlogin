@@ -10,8 +10,20 @@ const CACHE_TTL = 60 * 1000;
 async function getList() {
   const now = Date.now();
   if (_cache && now - _cacheAt < CACHE_TTL) return _cache;
-  _cache  = await getActiveIpAllowlist();
-  _cacheAt = now;
+  // ดึงข้อมูลใหม่ — ถ้า DB error ให้ใช้ cache เก่า (stale) ต่อไปก่อน
+  try {
+    const fresh = await getActiveIpAllowlist();
+    _cache  = fresh;
+    _cacheAt = now;
+  } catch (err) {
+    if (_cache !== null) {
+      // มี stale cache — ใช้ต่อ (ดีกว่า fail-open หรือ fail-closed สุดขั้ว)
+      console.warn('[ipAllowlist] DB error, using stale cache:', err.message);
+    } else {
+      // ไม่มี cache เลย — โยน error ให้ middleware จัดการ
+      throw err;
+    }
+  }
   return _cache;
 }
 
@@ -57,9 +69,10 @@ async function ipAllowlistMiddleware(req, res, next) {
       });
     }
     next();
-  } catch {
-    // ถ้า DB error ให้ผ่านไปก่อน (fail-open) เพื่อไม่ให้ระบบล็อกตัวเอง
-    next();
+  } catch (err) {
+    // ไม่มี cache เลยและ DB ล่ม — fail-closed ป้องกัน bypass allowlist
+    console.error('[ipAllowlist] DB unavailable and no cache — blocking request:', err.message);
+    return res.status(503).json({ success: false, message: 'Service temporarily unavailable.' });
   }
 }
 
